@@ -5,5 +5,5 @@ app = FastAPI()
 @app.get("/")
 def inicio():
     return {
-        "mensagem": "aula connect funcionando!"
+        "mensagem": "aulaconnect funcionando!"
     }
