@@ -44,3 +44,16 @@ SessionLocal = sessionmaker(
 #
 # O SQLAlchemy usará essa Base para conhecer nossas tabelas.
 Base = declarative_base()
+
+# Cria uma sessão para trabalhar com o banco de dados.
+def get_db():
+ # Cria uma nova sessão
+    db = SessionLocal()
+
+    try:
+        # Entrega a sessão para quem prescisar utilizar o banco
+        yield db
+
+    finally:
+    # Fecha a sessão depois que terminar de utiliza-la
+        db.close()
