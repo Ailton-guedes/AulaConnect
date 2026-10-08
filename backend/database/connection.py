@@ -37,11 +37,8 @@ SessionLocal = sessionmaker(
 
 # Cria a classe Base.
 # Todos os nossos modelos/tabelas do sistema irão herdar dessa Base.
-#
 # Por exemplo:
 # class Usuario(Base):
-#     ...
-#
 # O SQLAlchemy usará essa Base para conhecer nossas tabelas.
 Base = declarative_base()
 
