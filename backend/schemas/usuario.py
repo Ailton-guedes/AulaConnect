@@ -1,19 +1,28 @@
-# Importa o BaseModel do Pydantic.
-# Ele será usado para definir os dados
-# que a API receberá.
-from pydantic import BaseModel
 
-# Define os dados necessários para cadastrar um usuário.
+# Importa o BaseModel para definir os dados da API
+from pydantic import BaseModel, ConfigDict
+
+# Importa o tipo utilizado para representar data e hora
+from datetime import datetime
+
+
+# Dados recebidos no cadastro de usuário
 class UsuarioCreate(BaseModel):
-    # Nome do usuário
+
     nome: str
-
-    # E-mail do usuário
-    email: str  
-
-    # Senha do usuário
-    senha: str 
-
-    # Tipo/perfil do usuário
-    # Exemplos: administrador, professor, responsável
+    email: str
+    senha: str
     tipo_usuario: str
+
+
+# Dados que a API pode devolver ao consultar um usuário
+class UsuarioResponse(BaseModel):
+
+    # Permite ler os dados de um objeto do SQLAlchemy
+    model_config = ConfigDict(from_attributes=True)
+
+    id_usuario: int
+    nome: str
+    email: str
+    tipo_usuario: str
+    data_cadastro: datetime
