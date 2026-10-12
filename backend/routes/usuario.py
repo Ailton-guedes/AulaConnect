@@ -13,9 +13,19 @@ from backend.database.connection import get_db
 from backend.models.usuario import Usuario 
 
 # importa o Schema utilizado no cadastro
-from backend.schemas.usuario import UsuarioCreate, UsuarioResponse
-from backend.security import criar_hash_senha
+from backend.schemas.usuario import (
+    UsuarioCreate,   # - UsuarioCreate: formato esperado para cadastrar
+    UsuarioResponse, # - UsuarioResponse: formato público para listar sem expor senha
+    UsuarioLogin,    # - UsuarioLogin: formato esperado no corpo da requisição de login
+    TokenResponse    # - TokenResponse: formato de resposta contendo o JWT
+)
 
+# Importa as ferramentas de segurança:
+from backend.security import (
+    criar_hash_senha,  # - criar_hash_senha: para novos cadastros
+    verificar_senha,   # - verificar_senha: para conferir no login se a senha digitada bate com o hash
+    criar_token_acesso # - criar_token_acesso: para gerar o token JWT após o login bem-sucedido
+)
 # Cria um grupo de rotas para usuários
 router = APIRouter(
     prefix="/usuarios",
@@ -51,7 +61,7 @@ def cadastrar_usuario(
     if usuario_existente:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Este e=mail já está cadastrado."
+            detail="Este email já está cadastrado."
         )
     # Traforma a senha original em um hash seguro 
     senha_hash = criar_hash_senha(usuario.senha)
@@ -62,23 +72,55 @@ def cadastrar_usuario(
         email=usuario.email,
         senha=senha_hash,
         tipo_usuario=usuario.tipo_usuario
-
     )
 
     try:
-        # Adiciona o usuário à sessão do banco
-        db.add(novo_usuario)
-
-        # Grava os dados no MySQL
-        db.commit()
-
-        # Recupera os valores gerados pelo banco
-        db.refresh(novo_usuario)
+        db.add(novo_usuario)      # Adiciona o usuário à sessão do banco
+        db.commit()               # Grava os dados no MySQL
+        db.refresh(novo_usuario)  # Recupera os valores gerados pelo banco
 
     except Exception:
-        # Desfaz a transação se ocorrer algum erro
-        db.rollback()
+        db.rollback()  # Desfaz a transação se ocorrer algum erro
         raise
-
     # Retorna o usuário sem incluir a senha ou o hash
     return novo_usuario
+
+# Post Autenicação / login
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK
+)
+def  login(
+    dados_login: UsuarioLogin,
+    db: Session = Depends(get_db)
+):
+    # 1. Procura o usuário pelo e-mail informado
+    usuario = db.query(Usuario).filter(
+        Usuario.email == dados_login.email
+    ).first()
+
+    # 2. Segurança: se o usuário não existir OU se a senha não bater com o hash,
+    # retornamos 401 Unauthorized com a mesma mensagem para ambos os casos.
+    if not usuario or not verificar_senha(dados_login.senha, usuario.senha):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="E-mail ou senha incorretos."
+        )
+
+    # 3. Dados colocados dentro do payload do token JWT:
+    # 'sub' (subject) identifica quem é o usuário
+    payload = {
+        "sub": str(usuario.id_usuario),
+        "email": usuario.email,
+        "tipo_usuario": usuario.tipo_usuario
+    }
+
+    # 4. Gera o token assinado usando a chave secreta
+    token = criar_token_acesso(dados=payload)
+
+    # 5. Retorna o token respeitando o schema TokenResponse
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
