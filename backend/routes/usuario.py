@@ -24,7 +24,8 @@ from backend.schemas.usuario import (
 from backend.security import (
     criar_hash_senha,  # - criar_hash_senha: para novos cadastros
     verificar_senha,   # - verificar_senha: para conferir no login se a senha digitada bate com o hash
-    criar_token_acesso # - criar_token_acesso: para gerar o token JWT após o login bem-sucedido
+    criar_token_acesso, # - criar_token_acesso: para gerar o token JWT após o login bem-sucedido
+    obter_usuario_atual 
 )
 # Cria um grupo de rotas para usuários
 router = APIRouter(
@@ -35,7 +36,11 @@ router = APIRouter(
 # rota para lista todos usuarios cadastrados
 # Define os campos que API pode devolver
 @router.get("/", response_model=list[UsuarioResponse])
-def lista_usuarios(db: Session = Depends(get_db)):
+def lista_usuarios(
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario= Depends(obter_usuario_atual)
+    ):
+
 
       # Consulta todos os registros da tabela usuarios
     usuarios = db.query(Usuario).all()
