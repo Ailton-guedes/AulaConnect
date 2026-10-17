@@ -24,12 +24,12 @@ app.include_router(usuario_router)
 @app.get("/")
 def inicio():
     return {
-        "mensagem": "AulaConnect funcionando!"
+        "AulaConmect está funcionando!"
     }
 
 # Rota para testa a conexão do FastAPI com o banco
 @app.get("/teste-banco")
 def teste_banco(db: Session = Depends(get_db)):
     return {
-         "mensagem": "FastAPI conectado ao banco com sucesso!"
+         "FastAPI conectado ao banco com sucesso!"
     }
