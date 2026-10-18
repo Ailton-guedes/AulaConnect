@@ -11,6 +11,8 @@ from backend.database.connection import get_db
 
 # Importando as rotas de usuário
 from backend.routes.usuario import router as usuario_router
+# Importando as rotas de responsável
+from backend.routes.responsavel import router as responsavel_router
 
 
 # Cria a aplicação FastAPI
@@ -19,6 +21,7 @@ app = FastAPI()
 
 # conecta as rotas de usuários á aplicação
 app.include_router(usuario_router)
+app.include_router(responsavel_router)
 
 # Rota principal do sitema
 @app.get("/")
