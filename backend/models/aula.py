@@ -6,17 +6,17 @@ from backend.database.connection import Base
 
 
 # Representa a tabela alunos no banco de dados MySQL
-class Aulas(Base):
+class Aula(Base):
     __tablename__ = "aulas"
 
     # Identificador da aula
-    id_aulas = Column(Integer, primary_key=True, autoincrement=True)
+    id_aula = Column(Integer, primary_key=True, autoincrement=True)
 
     # descrição da aula
     descricao = Column(String(100), nullable=False)
 
     # Dia da semana que a aula acontece
-    dia_semana = Column(String(30), nullable=True)
+    dia_semana = Column(String(30), nullable=False)
 
     # horario de inicio da aula
     horario = Column(Time, nullable=False)

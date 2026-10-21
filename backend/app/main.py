@@ -13,17 +13,21 @@ from backend.database.connection import get_db
 from backend.routes.usuario import router as usuario_router
 # Importando as rotas de responsável
 from backend.routes.responsavel import router as responsavel_router
-
+# Importando as rotas de Aluno
+from backend.routes.aluno import router as aluno_router
+# Importando as rotas de Aula
+from backend.routes.aula import router as aula_router 
 
 # Cria a aplicação FastAPI
 app = FastAPI()
 
 
-# conecta as rotas de usuários á aplicação
-app.include_router(usuario_router)
-app.include_router(responsavel_router)
+app.include_router(usuario_router) # conecta as rotas de usuários
+app.include_router(responsavel_router) # conecta as rotas de responsável
+app.include_router(aluno_router) # conecta as rotas de aluno
+app.include_router(aula_router) # conecta as rotas de aula
 
-# Rota principal do sitema
+# Rota principal do sistema
 @app.get("/")
 def inicio():
     return {

@@ -46,7 +46,7 @@ def cadastrar_responsavel(
     # Cria o objeto com os dados recebidos
     novo_responsavel = Responsavel(
         nome=responsavel.nome,
-        telefone=responsavel.tefefone,
+        telefone=responsavel.telefone,
         email=responsavel.email,
         cpf=responsavel.cpf
     )
