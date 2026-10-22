@@ -142,3 +142,38 @@ def login(
         "access_token": token,
         "token_type": "bearer"
     }
+# Rota para excluir a própria conta do usuário autenticado
+@router.delete("/{id_usuario}")
+def excluir_usario(
+    id_usuario: int,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(obter_usuario_atual)
+):
+# Impede que o usuário exclua a conta de outra pessoa
+    if usuario_atual.id_usuario != id_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você só pode excluir sua propria conta."
+        )
+
+# Busca a conta que será excluida
+    usuario = db.query(Usuario).filter(
+    Usuario.id_usuario == id_usuario
+    ).first()
+
+# Verifica se a conta existe
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado"
+        )
+    # Exclui a conta e confrima a transação
+    try:
+        db.delete(usuario)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    # retorna uma mensagem de confirmação
+    return{"Usuário excluido com sucesso."}
