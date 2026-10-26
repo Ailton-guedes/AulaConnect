@@ -21,6 +21,8 @@ from backend.routes.aula import router as aula_router
 from backend.routes.angendamento import router as agendamento_router
 # Imortando as rotas de pagamentos
 from backend.routes.pagamento import router as pagamento_router
+# Importando as rotas de evolução
+from backend.routes.evolucao import router as evolucao_router
 
 
 # Cria a aplicação FastAPI
@@ -33,6 +35,8 @@ app.include_router(aluno_router) # conecta as rotas de aluno
 app.include_router(aula_router) # conecta as rotas de aula
 app.include_router(agendamento_router) # conecta as rotas de agendamento
 app.include_router(pagamento_router) # conecta as rotas de pagamentos
+app.include_router(evolucao_router) # conecta as rotas de evolução
+
 # Rota principal do sistema
 @app.get("/")
 def inicio():
