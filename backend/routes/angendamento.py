@@ -116,7 +116,7 @@ def editar_agendamento(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Aluno não encontrado."
         )
-    # se uma aula goi informada, verifica se ela existe
+    # se uma aula foi informada, verifica se ela existe
 
     if dados.id_aula is not None:
         aula = db.query(Aula).filter(
@@ -162,6 +162,7 @@ def excluir_agendamento(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agendamento não encontrado."
         )
+# Exclui o registro e salva a alteração
     try:
         db.delete(agendamento)
         db.commit()
