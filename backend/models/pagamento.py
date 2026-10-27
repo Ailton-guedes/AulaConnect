@@ -23,7 +23,7 @@ class Pagamento(Base):
     # Valor do pagamento, com duas casas decimais
     valor = Column(Numeric(10,2), nullable=False)
     # Data limite para realizar o pagamento
-    data_nascimento = Column(Date, nullable=False)
+    data_vencimento = Column(Date, nullable=False)
     # Data em que o pagamento foi realizado
     data_pagamento = Column(Date, nullable=True)
     # Situação do pagento: por exemplo, PENDENTE ou PAGO

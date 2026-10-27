@@ -1,3 +1,4 @@
+
 # Importa os recursos necessários do FastAPI e do SQLAlchemy
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -17,18 +18,19 @@ router = APIRouter(
     prefix="/pagamentos",
     tags=["Pagamentos"]
 )
+
+
 # Rota para cadastrar um pagamento
 @router.post(
     "/",
     response_model=PagamentoResponse,
     status_code=status.HTTP_201_CREATED
-    )
+)
 def criar_pagamento(
     pagamento: PagamentoCreate,
     db: Session = Depends(get_db)
-    ):
-
-    # Verificar se o aluno informado existe
+):
+    # Verifica se o aluno informado existe
     aluno = db.query(Aluno).filter(
         Aluno.id_aluno == pagamento.id_aluno
     ).first()
@@ -38,6 +40,7 @@ def criar_pagamento(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Aluno não encontrado."
         )
+
     # Cria o pagamento com os dados recebidos
     novo_pagamento = Pagamento(**pagamento.model_dump())
 
@@ -46,22 +49,21 @@ def criar_pagamento(
         db.commit()
         db.refresh(novo_pagamento)
     except Exception:
-        db.rollback
+        db.rollback()
         raise
 
     return novo_pagamento
 
-# Rota para listar todos os pagmentos 
-@router.get(
-    "/",
-    response_model=list[PagamentoResponse])
-def listar_pagamentos(
-    db: Session = Depends(get_db)
-    ):
-    pagamentos = db.query(Pagamento).all()
-    return pagamentos
+
+# Rota para listar todos os pagamentos
+@router.get("/", response_model=list[PagamentoResponse])
+def listar_pagamentos(db: Session = Depends(get_db)):
+    return db.query(Pagamento).all()
+
+
 # Rota para editar um pagamento existente
-@router.put("/{id_pagamento}", 
+@router.put(
+    "/{id_pagamento}",
     response_model=PagamentoResponse
 )
 def editar_pagamento(
@@ -69,10 +71,9 @@ def editar_pagamento(
     dados: PagamentoCreate,
     db: Session = Depends(get_db)
 ):
-
-# Busca o pagamento pelo ID
+    # Busca o pagamento pelo ID
     pagamento = db.query(Pagamento).filter(
-        Pagamento.id_pagamento == id.pagamento
+        Pagamento.id_pagamento == id_pagamento
     ).first()
 
     # Verifica se o pagamento existe
@@ -80,9 +81,9 @@ def editar_pagamento(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Pagamento não encontrado."
-    )
+        )
 
-    # Verificar se o aluno informado existe
+    # Verifica se o aluno informado existe
     aluno = db.query(Aluno).filter(
         Aluno.id_aluno == dados.id_aluno
     ).first()
@@ -106,22 +107,25 @@ def editar_pagamento(
 
     return pagamento
 
+
 # Rota para excluir um pagamento
-@router.delete("/{id.pagamento}")
+@router.delete("/{id_pagamento}")
 def excluir_pagamento(
     id_pagamento: int,
     db: Session = Depends(get_db)
 ):
-# Busca o pagamento pelo ID
+    # Busca o pagamento pelo ID
     pagamento = db.query(Pagamento).filter(
         Pagamento.id_pagamento == id_pagamento
     ).first()
-# Verifica se o pagamento existe
+
+    # Verifica se o pagamento existe
     if pagamento is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pagamento não encontrado"
+            detail="Pagamento não encontrado."
         )
+
     try:
         db.delete(pagamento)
         db.commit()
@@ -129,4 +133,4 @@ def excluir_pagamento(
         db.rollback()
         raise
 
-    return {"Pagamento excluído com sucesso."}
+    return {"mensagem": "Pagamento excluído com sucesso."}

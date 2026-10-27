@@ -9,9 +9,10 @@ from decimal import Decimal
 class PagamentoCreate(BaseModel):
     id_aluno: int
     valor: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
-    data_nascimento: date
+    data_vencimento: date
     data_pagamento: date | None = None
     status: str = Field(min_length=1, max_length=30)
+    forma_pagamento: str | None = Field(default=None, max_length=30)
 
 # Define os dados devolvidos pela API
 
@@ -22,9 +23,9 @@ class PagamentoResponse(BaseModel):
     id_pagamento: int
     id_aluno: int
     valor: Decimal
-    data_nascimento: date
+    data_vencimento: date
     data_pagamento: date | None = None
     status: str
-    froma_pagamento: str | None = None
+    forma_pagamento: str | None = None
 
 

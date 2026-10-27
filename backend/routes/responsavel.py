@@ -71,3 +71,72 @@ def listar_responsaveis(
 ):
     responsaveis = db.query(Responsavel).all()
     return responsaveis
+
+
+# Rota para editar um responsável pelo ID
+@router.put(
+    "/{id_responsavel}",
+    response_model=ResponsavelResponse
+)
+def editar_responsavel(
+    id_responsavel: int,
+    dados: ResponsavelCreate,
+    db: Session = Depends(get_db)
+):
+    # Busca o responsável pelo ID informado
+    responsavel = db.query(Responsavel).filter(
+        Responsavel.id_responsavel == id_responsavel
+    ).first()
+
+    # Se não encontrar, retorna erro 404
+    if responsavel is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Responsável não encontrado."
+        )
+
+    # Atualiza os campos com os dados recebidos
+    responsavel.nome = dados.nome
+    responsavel.telefone = dados.telefone
+    responsavel.email = dados.email
+    responsavel.cpf = dados.cpf
+
+    try:
+        db.commit()
+        db.refresh(responsavel)
+    except Exception:
+        db.rollback()
+        raise
+
+    return responsavel
+
+
+# Rota para excluir um responsável pelo ID
+@router.delete("/{id_responsavel}")
+def excluir_responsavel(
+    id_responsavel: int,
+    db: Session = Depends(get_db)
+):
+    # Busca o responsável pelo ID informado
+    responsavel = db.query(Responsavel).filter(
+        Responsavel.id_responsavel == id_responsavel
+    ).first()
+
+    # Se não encontrar, retorna erro 404
+    if responsavel is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Responsável não encontrado."
+        )
+
+    try:
+        db.delete(responsavel)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Não foi possível excluir. Verifique se existem alunos vinculados a este responsável."
+        )
+
+    return {"Responsável excluído com sucesso."}

@@ -7,7 +7,7 @@ from datetime import date
 # Importa recursos do Pydantic para validar os dados
 class EvolucaoCreate(BaseModel):
     id_aluno: int
-    data_avalicao: date
+    data_avaliacao: date
     descricao: str
     observacoes: str | None = None
 
@@ -20,4 +20,4 @@ class EvolucaoResponse( BaseModel):
     id_aluno: int
     data_avaliacao: date
     descricao: str
-    obsercacoes: str | None = None
+    observacoes: str | None = None
