@@ -17,7 +17,7 @@ from backend.database.connection import Base
 
 # Representa a tabela de notificações no MySQL
 class Notificacao(Base):
-    __tablename__ = "noticacoes"
+    __tablename__ = "notificacoes"
 
     # Identificador único da notificação
     id_notificacao = Column(
