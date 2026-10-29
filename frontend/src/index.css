@@ -1,0 +1,17 @@
+/* confirgura a página inteira */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #c5f6f5;
+  color: #1f2937;
+}
+
+/* Define a área onde o React será exibido */
+#root {
+  min-height: 100vh;
+}
