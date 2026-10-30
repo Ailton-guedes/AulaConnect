@@ -26,8 +26,8 @@ function App() {
 
         {/* Cabeçalho */}
         <header className="cabecalho">
-          <div>
-          <h2>AulaConnect</h2>
+          <div className='cabecalho-info'>
+          <h2>Personal Kids</h2>
           <p>Gestão de aulas em um só lugar</p>
           </div>
           
@@ -43,10 +43,37 @@ function App() {
 
         {/* Conteúdo da página */}
         <section className="resumo">
-          <h2>Bem-vindo Tia Aline !</h2>
+          <h2>Bem-vinda Tia Aline !</h2>
           <p>
-            Organize seus aqui alunos, aulas e agendamentos.
+            Organize seus alunos, aulas e agendamentos.
           </p>
+            {/* Cards com os indicadores do sistema */}
+        <div className='indicadores'>
+          <article className='card-indicador'>
+            <span className='indicador-titulo'> Total de alunos</span>
+            <strong className='indicador-valor'>24</strong>
+            <p>Alunos cadastraos</p>
+          </article>
+
+          <article className='card-indicador'>
+            <span className='indicador-titulo'>Aulas agendadas</span>
+            <strong className='indicador-valor'>12</strong>
+            <p>Aulas programadas</p>
+          </article>
+
+          <article className='card-indicador'>
+            <span className='indicador-titulo'>Pagamentos recebidos</span>
+            <strong className='indicador-valor'>1.800,00</strong>
+            <p>Valor demostrativo</p>
+          </article>
+
+          <article className='card-indicador'>
+            <span className='indicador-titulo'>Notificações</span>
+            <strong className='indicador-valor'>3</strong>
+            <p>Notificações pendentes</p>
+          </article>
+
+        </div>
         </section>
 
       </main>
