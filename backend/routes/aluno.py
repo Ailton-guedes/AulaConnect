@@ -122,25 +122,29 @@ def editar_aluno(
     return aluno
 
  # Rota para excluir um aluno pelo ID
-@router.delete("/{Id_aluno}")
+@router.delete("/{id_aluno}")
 def excluir_aluno(
     id_aluno: int,
     db: Session = Depends(get_db)
 ):
-# Buscar o aluno que será excluído
+    # Busca o aluno que será excluído
     aluno = db.query(Aluno).filter(
         Aluno.id_aluno == id_aluno
     ).first()
-# Verifica se o aluno existe
+
+    # Verifica se o aluno existe
     if aluno is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Aluno não encontrado."
         )
+
+    # Exclui o aluno e salva a alteração no banco
     try:
         db.delete(aluno)
+        db.commit()
     except Exception:
         db.rollback()
         raise
 
-    return {"Aluno excluido com sucesso"}
+    return {"mensagem": "Aluno excluído com sucesso."}
