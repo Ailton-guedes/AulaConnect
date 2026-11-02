@@ -94,6 +94,18 @@ def editar_responsavel(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Responsável não encontrado."
         )
+    # Verifica se o CPF informado já pertence a outro responsável
+    if dados.cpf:
+        cpf_existente = db.query(Responsavel).filter(
+        Responsavel.cpf == dados.cpf,
+        Responsavel.id_responsavel != id_responsavel
+    ).first()
+
+    if cpf_existente:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este CPF já está cadastrado para outro responsável."
+        )
 
     # Atualiza os campos com os dados recebidos
     responsavel.nome = dados.nome
