@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom"
+
 function MenuLateral() {
     return(
         <aside className="menu-lateral">
@@ -5,16 +7,16 @@ function MenuLateral() {
       <h1 className="logo">AulaConnect</h1>
 
       {/* Opções de navegação */}
-      <nav>
-        <a href="#">Início</a>
-        <a href="#">Alunos</a>
-        <a href="#">Responsáveis</a>
-        <a href="#">Aulas</a>
-        <a href="#">Agendamentos</a>
-        <a href="#">Pagamentos</a>
-        <a href="#">Evoluções</a>
-        <a href="#">Notificações</a>
-      </nav>   
+     <nav>
+      <NavLink to="/">Início</NavLink>
+      <NavLink to="/alunos">Alunos</NavLink>
+      <NavLink to="/responsaveis">Responsáveis</NavLink>
+      <NavLink to="/aulas">Aulas</NavLink>
+      <NavLink to="/agendamentos">Agendamentos</NavLink>
+      <NavLink to="/pagamentos">Pagamentos</NavLink>
+      <NavLink to="/evolucoes">Evoluções</NavLink>
+      <NavLink to="/notificacoes">Notificações</NavLink>
+  </nav>
     
     </aside>
     )

@@ -144,10 +144,10 @@ function Alunos() {
             </div>
 
             {/* Formulário de cadastro e edição */}
-            <div className="painel-alunos">
+            <div className="painel-pagina">
                 <h3>Dados do aluno</h3>
 
-                <form className="formulario-aluno" onSubmit={cadastrarAluno}>
+                <form className="formulario-pagina" onSubmit={cadastrarAluno}>
 
                     <div className="campo">
                         <label htmlFor="nome">Nome do aluno</label>
@@ -233,7 +233,7 @@ function Alunos() {
             </div>
 
             {/* Lista de alunos cadastrados */}
-            <div className="painel-alunos">
+            <div className="painel-pagina">
                 <h3>Alunos cadastrados</h3>
 
                 {alunos.length === 0 ? (

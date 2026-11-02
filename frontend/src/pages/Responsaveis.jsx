@@ -139,10 +139,10 @@ function Responsaveis() {
             </div>
 
             {/* Formulário de cadastro e edição */}
-            <div className="painel-alunos">
+            <div className="painel-pagina">
                 <h3>Dados do responsável</h3>
 
-                <form className="formulario-aluno" onSubmit={salvarResponsavel}>
+                <form className="formulario-pagina" onSubmit={salvarResponsavel}>
 
                     <div className="campo">
                         <label htmlFor="nomeResponsavel">Nome completo</label>
@@ -211,7 +211,7 @@ function Responsaveis() {
             </div>
 
             {/* Lista de responsáveis cadastrados */}
-            <div className="painel-alunos">
+            <div className="painel-pagina">
                 <h3>Responsáveis cadastrados</h3>
 
                 {responsaveis.length === 0 ? (

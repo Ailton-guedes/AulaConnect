@@ -1,0 +1,23 @@
+
+/* ========================================
+   CONFIGURAÇÕES GERAIS DO SISTEMA
+   ======================================== */
+
+/* Define o comportamento padrão dos elementos */
+* {
+    box-sizing: border-box;
+}
+
+/* Remove as margens e define a fonte padrão */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Garante que os campos utilizem a fonte do sistema */
+input,
+select,
+textarea,
+button {
+    font-family: inherit;
+}
