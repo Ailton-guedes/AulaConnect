@@ -29,13 +29,11 @@
   color: white;
 }
 
-/* Nome do sistema */
 .logo {
   font-size: 24px;
   margin: 0 0 32px;
 }
 
-/* Organização dos links */
 .menu-lateral nav {
   display: flex;
   flex-direction: column;
@@ -49,7 +47,6 @@
   text-decoration: none;
 }
 
-/* Efeitos dos links: mouse e página selecionada */
 .menu-lateral nav a:hover,
 .menu-lateral nav a.active {
   background-color: #334155;
@@ -74,7 +71,6 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* Título e descrição */
 .cabecalho-info {
   flex: 1;
   text-align: center;
@@ -154,7 +150,6 @@
   text-align: left;
 }
 
-/* Título e ícone dos cartões */
 .card-topo {
   display: flex;
   align-items: center;
@@ -176,7 +171,6 @@
   stroke-width: 2;
 }
 
-/* Valores e descrições */
 .indicador-valor {
   display: block;
   margin-bottom: 10px;
@@ -206,6 +200,7 @@
 
 .titulo-pagina h2 {
   margin-bottom: 8px;
+  color: #1e293b;
 }
 
 .titulo-pagina p {
@@ -247,16 +242,41 @@
   font-weight: bold;
 }
 
-.campo input {
+/* Campos de texto, seleção e observações */
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: inherit;
   font-size: 14px;
 }
 
-/* Botão de cadastro */
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  border-color: #436de1;
+  outline: none;
+  background-color: white;
+}
+
+/* Área de observações */
+.campo textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Botões do formulário */
 .acoes-formulario {
   grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .acoes-formulario button {
@@ -273,21 +293,72 @@
   background-color: #3157c5;
 }
 
+/* Mensagem da lista */
 .mensagem-lista {
   color: #64748b;
   font-size: 14px;
 }
 
+/* Lista de alunos cadastrados */
+.lista-alunos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Cartão individual do aluno */
+.item-aluno {
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+}
+
+.item-aluno h4 {
+  margin: 0 0 12px;
+  color: #1e293b;
+}
+
+.item-aluno p {
+  margin: 6px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Botões de editar e excluir */
+.item-aluno button {
+  margin-top: 14px;
+  margin-right: 8px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #436de1;
+  color: white;
+  cursor: pointer;
+}
+
+.item-aluno button:hover {
+  background-color: #3157c5;
+}
+
+.item-aluno button:last-child {
+  background-color: #dc3545;
+}
+
+.item-aluno button:last-child:hover {
+  background-color: #b02a37;
+}
+
 /* ========================================
    RESPONSIVIDADE
-   Ajustes para telas menores
    ======================================== */
 
 @media (max-width: 700px) {
 
-  /* Indicadores e formulário passam para uma coluna */
+  /* Indicadores, formulário e lista passam para uma coluna */
   .indicadores,
-  .formulario-aluno {
+  .formulario-aluno,
+  .lista-alunos {
     grid-template-columns: 1fr;
   }
 
