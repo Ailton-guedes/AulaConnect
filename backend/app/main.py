@@ -2,6 +2,9 @@
 
 from fastapi import FastAPI, Depends
 
+# Permite a comunicaçõa entre Front-end e o Back-end
+from fastapi.middleware.cors import CORSMiddleware
+
 # importa a classe Session do SQLalchemy
 # Ela representa uma sesão de comunicação com banco
 from sqlalchemy.orm import Session
@@ -25,11 +28,26 @@ from backend.routes.pagamento import router as pagamento_router
 from backend.routes.evolucao import router as evolucao_router
 # Importando as rotas de notificações
 from backend.routes.notificacao import router as notificacao_router
+# Importando as rotas de planos
+from backend.routes import plano
+# importando as rotas de contratos
+from backend.routes import contrato
 
 
 # Cria a aplicação FastAPI
 app = FastAPI()
 
+# Configuração de acesso do Front-end
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(usuario_router) # conecta as rotas de usuários
 app.include_router(responsavel_router) # conecta as rotas de responsável
@@ -39,6 +57,8 @@ app.include_router(agendamento_router) # conecta as rotas de agendamento
 app.include_router(pagamento_router) # conecta as rotas de pagamentos
 app.include_router(evolucao_router) # conecta as rotas de evolução
 app.include_router(notificacao_router)# conecta as rotas de notificações
+app.include_router(plano.router) # conecta as rotas de plano
+app.include_router(contrato.router) # conecta as rotas de contrato
 
 # Rota principal do sistema
 @app.get("/")
