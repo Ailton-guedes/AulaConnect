@@ -50,6 +50,9 @@ def cadastrar_aluno(
         nome=aluno.nome,
         data_nascimento=aluno.data_nascimento,
         sexo=aluno.sexo,
+        endereco=aluno.endereco,
+        bairro=aluno.bairro,
+        cidade=aluno.cidade,
         observacoes=aluno.observacoes,
         id_responsavel=aluno.id_responsavel
     )
@@ -108,6 +111,9 @@ def editar_aluno(
     aluno.nome = dados_aluno.nome
     aluno.data_nascimento = dados_aluno.data_nascimento
     aluno.sexo = dados_aluno.sexo
+    aluno.endereco = dados_aluno.endereco
+    aluno.bairro = dados_aluno.bairro
+    aluno.cidade = dados_aluno.cidade
     aluno.observacoes = dados_aluno.observacoes
     aluno.id_responsavel = dados_aluno.id_responsavel
 

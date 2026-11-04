@@ -11,6 +11,9 @@ class AlunoCreate(BaseModel):
     sexo: str | None = None
     observacoes: str | None = None
     id_responsavel: int | None = None
+    endereco: str | None = None
+    bairro: str | None = None
+    cidade: str | None = None
 
 
 # Dados devolvidos pela API
@@ -22,9 +25,13 @@ class AlunoResponse(BaseModel):
     nome: str
     data_nascimento: date | None = None
     sexo: str | None = None
+    endereco: str | None = None
+    bairro: str | None = None
+    cidade: str | None = None
     observacoes: str | None = None
     id_responsavel: int | None = None
     data_cadastro: datetime
+
 
 
 

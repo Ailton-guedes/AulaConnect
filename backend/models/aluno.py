@@ -21,6 +21,11 @@ class Aluno(Base):
     # Sexo do aluno
     sexo = Column(String(20), nullable=True)
 
+    # Endereço do aluno
+    endereco = Column(String(200), nullable=True)
+    bairro = Column(String(100), nullable=True)
+    cidade = Column(String(100), nullable=True)
+
     # Observações sobre o aluno
     observacoes = Column(Text, nullable=True)
 
