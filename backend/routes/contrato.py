@@ -1,31 +1,39 @@
 
-# Recursos necessários do FastAPI
+# Importa os recursos necessários do FastAPI
 from fastapi import APIRouter, Depends, HTTPException, status
 
-# Sessão do banco de dados
+# Permite trabalhar com sessões do banco de dados
 from sqlalchemy.orm import Session
+
+# Importa a conexão com o MySQL
 from backend.database.connection import get_db
 
-# Biblioteca para calcular meses
+# Biblioteca utilizada para calcular a duração dos contratos
 from dateutil.relativedelta import relativedelta
 
-# Modelos do banco
+# Importa os modelos do banco de dados
 from backend.models.aluno import Aluno
 from backend.models.plano import Plano
 from backend.models.contrato import Contrato
 
-# Schemas de contratos
-from backend.schemas.contrato import ContratoCreate, ContratoResponse
+# Importa os schemas de validação e resposta
+from backend.schemas.contrato import (
+    ContratoCreate,
+    ContratoResponse
+)
 
 
-# Configuração das rotas
+# Configura as rotas de contratos
 router = APIRouter(
     prefix="/contratos",
     tags=["Contratos"]
 )
 
 
-# Cadastrar um contrato
+# ==========================================================
+# CADASTRAR CONTRATO
+# ==========================================================
+
 @router.post(
     "/",
     response_model=ContratoResponse,
@@ -36,23 +44,23 @@ def cadastrar_contrato(
     db: Session = Depends(get_db)
 ):
 
-    # Verifica se o aluno existe
+    # Verifica se o aluno informado existe
     aluno = db.query(Aluno).filter(
         Aluno.id_aluno == dados.id_aluno
     ).first()
 
-    if not aluno:
+    if aluno is None:
         raise HTTPException(
             status_code=404,
             detail="Aluno não encontrado."
         )
 
-    # Verifica se o plano existe
+    # Verifica se o plano informado existe
     plano = db.query(Plano).filter(
         Plano.id_plano == dados.id_plano
     ).first()
 
-    if not plano:
+    if plano is None:
         raise HTTPException(
             status_code=404,
             detail="Plano não encontrado."
@@ -65,58 +73,111 @@ def cadastrar_contrato(
             detail="Este plano está desativado."
         )
 
-    # Impede cadastrar um segundo contrato ativo
-    # com período sobreposto para o mesmo aluno
+    # Calcula a data final com base na duração do plano
+    # Exemplo: 04/11/2026 + 6 meses = 04/05/2027
+    nova_data_fim = dados.data_inicio + relativedelta(
+        months=plano.duracao_meses
+    )
+
+    # Verifica se o aluno já possui um contrato ativo
+    # com datas que se sobrepõem ao novo contrato
     contrato_existente = db.query(Contrato).filter(
         Contrato.id_aluno == dados.id_aluno,
         Contrato.status == "ativo",
-        Contrato.data_inicio <= (
-            dados.data_inicio
-            + relativedelta(months=plano.duracao_meses)
-        ),
-        Contrato.data_fim >= dados.data_inicio
+        Contrato.data_inicio < nova_data_fim,
+        Contrato.data_fim > dados.data_inicio
     ).first()
 
-    if contrato_existente:
+    # Impede contratos ativos com períodos sobrepostos
+    if contrato_existente is not None:
         raise HTTPException(
             status_code=409,
             detail="O aluno já possui um contrato ativo neste período."
         )
 
-    # Calcula automaticamente a data de vencimento
-    data_fim = dados.data_inicio + relativedelta(
-        months=plano.duracao_meses
-    )
-
-    # Cria o contrato
+    # Cria o novo contrato
     novo_contrato = Contrato(
         id_aluno=dados.id_aluno,
         id_plano=dados.id_plano,
         data_inicio=dados.data_inicio,
-        data_fim=data_fim,
+        data_fim=nova_data_fim,
         valor_mensal=dados.valor_mensal,
         status="ativo"
     )
 
-    # Salva no MySQL
-    db.add(novo_contrato)
-    db.commit()
-    db.refresh(novo_contrato)
+    # Salva o contrato no MySQL
+    try:
+        db.add(novo_contrato)
+        db.commit()
+        db.refresh(novo_contrato)
 
+    except Exception:
+        db.rollback()
+        raise
+
+    # Retorna os dados do contrato cadastrado
     return novo_contrato
 
 
-# Listar todos os contratos
-@router.get("/", response_model=list[ContratoResponse])
+# ==========================================================
+# LISTAR TODOS OS CONTRATOS
+# ==========================================================
+
+@router.get(
+    "/",
+    response_model=list[ContratoResponse]
+)
 def listar_contratos(
     db: Session = Depends(get_db)
 ):
-    return db.query(Contrato).order_by(
+
+    # Busca todos os contratos em ordem de cadastro
+    contratos = db.query(Contrato).order_by(
         Contrato.id_contrato
     ).all()
 
+    return contratos
 
-# Consultar contrato pelo ID
+
+# ==========================================================
+# CONSULTAR CONTRATOS DE UM ALUNO
+# ==========================================================
+
+@router.get(
+    "/aluno/{id_aluno}",
+    response_model=list[ContratoResponse]
+)
+def listar_contratos_aluno(
+    id_aluno: int,
+    db: Session = Depends(get_db)
+):
+
+    # Verifica se o aluno existe
+    aluno = db.query(Aluno).filter(
+        Aluno.id_aluno == id_aluno
+    ).first()
+
+    if aluno is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Aluno não encontrado."
+        )
+
+    # Busca os contratos do aluno, começando pelos recentes
+    contratos = db.query(Contrato).filter(
+        Contrato.id_aluno == id_aluno
+    ).order_by(
+        Contrato.data_inicio.desc(),
+        Contrato.id_contrato.desc()
+    ).all()
+
+    return contratos
+
+
+# ==========================================================
+# CONSULTAR CONTRATO PELO ID
+# ==========================================================
+
 @router.get(
     "/{id_contrato}",
     response_model=ContratoResponse
@@ -126,44 +187,17 @@ def buscar_contrato(
     db: Session = Depends(get_db)
 ):
 
+    # Busca o contrato pelo identificador
     contrato = db.query(Contrato).filter(
         Contrato.id_contrato == id_contrato
     ).first()
 
-    if not contrato:
+    # Retorna erro caso não exista
+    if contrato is None:
         raise HTTPException(
             status_code=404,
             detail="Contrato não encontrado."
         )
 
-# Lista todos os contratos de um aluno específico
-@router.get(
-    "/aluno/{id_aluno}",
-    response_model=list[ContratoResponse]
-)
-def listar_contratos_aluno(
-    id_aluno: int,
-    db: Session = Depends(get_db)
-):
-    # Verifica se o aluno existe
-    aluno = db.query(Aluno).filter(
-        Aluno.id_aluno == id_aluno
-    ).first()
-
-    if not aluno:
-        raise HTTPException(
-            status_code=404,
-            detail="Aluno não encontrado."
-        )
-
-    # Busca todos os contratos do aluno,
-    # começando pelos mais recentes
-    contratos = db.query(Contrato).filter(
-        Contrato.id_aluno == id_aluno
-    ).order_by(
-        Contrato.data_inicio.desc(),
-        Contrato.id_contrato.desc()
-    ).all()
-
-    return contratos
-    
+    # Retorna o contrato encontrado
+    return contrato
