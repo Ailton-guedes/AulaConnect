@@ -11,6 +11,14 @@ from backend.database.connection import get_db
 # Biblioteca utilizada para calcular a duração dos contratos
 from dateutil.relativedelta import relativedelta
 
+# Permite avançar pelas datas do calendário
+from datetime import timedelta
+
+# Importa os horários semanais dos contratos
+from backend.models.horario_contrato import HorarioContrato
+
+# Importa os agendamentos das aulas
+from backend.models.agendamento import Agendamento
 # Importa os modelos do banco de dados
 from backend.models.aluno import Aluno
 from backend.models.plano import Plano
@@ -118,10 +126,7 @@ def cadastrar_contrato(
     # Retorna os dados do contrato cadastrado
     return novo_contrato
 
-
-# ==========================================================
 # LISTAR TODOS OS CONTRATOS
-# ==========================================================
 
 @router.get(
     "/",
@@ -138,10 +143,7 @@ def listar_contratos(
 
     return contratos
 
-
-# ==========================================================
 # CONSULTAR CONTRATOS DE UM ALUNO
-# ==========================================================
 
 @router.get(
     "/aluno/{id_aluno}",
@@ -174,9 +176,7 @@ def listar_contratos_aluno(
     return contratos
 
 
-# ==========================================================
 # CONSULTAR CONTRATO PELO ID
-# ==========================================================
 
 @router.get(
     "/{id_contrato}",
@@ -201,3 +201,116 @@ def buscar_contrato(
 
     # Retorna o contrato encontrado
     return contrato
+
+# GERAR AGENDAMENTOS AUTOMÁTICOS DO CONTRATO
+
+@router.post("/{id_contrato}/gerar-agendamentos")
+def gerar_agendamentos(
+    id_contrato: int,
+    db: Session = Depends(get_db)
+):
+
+    # Busca o contrato informado
+    contrato = db.query(Contrato).filter(
+        Contrato.id_contrato == id_contrato
+    ).first()
+
+    # Verifica se o contrato existe
+    if contrato is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Contrato não encontrado."
+        )
+
+    # Apenas contratos ativos podem gerar agendamentos
+    if contrato.status != "ativo":
+        raise HTTPException(
+            status_code=400,
+            detail="O contrato não está ativo."
+        )
+
+    # Busca os horários semanais cadastrados no contrato
+    horarios = db.query(HorarioContrato).filter(
+        HorarioContrato.id_contrato == id_contrato
+    ).all()
+
+    # Impede gerar aulas sem horários cadastrados
+    if not horarios:
+        raise HTTPException(
+            status_code=400,
+            detail="O contrato não possui horários cadastrados."
+        )
+
+    # Contadores para apresentar o resultado
+    quantidade_criada = 0
+    quantidade_existente = 0
+
+    # Percorre cada horário semanal do contrato
+    try:
+        for horario in horarios:
+
+            # Começa na data inicial do contrato
+            data_atual = contrato.data_inicio
+
+            # Calcula quantos dias faltam até o dia da semana
+            dias_ate_aula = (
+                horario.dia_semana - data_atual.weekday()
+            ) % 7
+
+            # Encontra a primeira ocorrência da aula
+            data_atual += timedelta(days=dias_ate_aula)
+
+            # Percorre as semanas até o fim do contrato
+            # A data final é exclusiva
+            while data_atual < contrato.data_fim:
+
+                # Verifica se já existe um agendamento
+                # para o mesmo aluno, data e horário
+                agendamento_existente = db.query(
+                    Agendamento
+                ).filter(
+                    Agendamento.id_aluno == contrato.id_aluno,
+                    Agendamento.data_aula == data_atual,
+                    Agendamento.horario_inicio == horario.horario_inicio
+                ).first()
+
+                if agendamento_existente is not None:
+
+                    # Não cria outro agendamento no mesmo horário
+                    quantidade_existente += 1
+
+                else:
+
+                    # Cria o agendamento vinculado ao contrato
+                    novo_agendamento = Agendamento(
+                        id_aluno=contrato.id_aluno,
+                        id_aula=horario.id_aula,
+                        id_contrato=contrato.id_contrato,
+                        data_aula=data_atual,
+                        horario_inicio=horario.horario_inicio,
+                        tipo_agendamento="regular",
+                        status="agendado"
+                    )
+
+                    db.add(novo_agendamento)
+                    quantidade_criada += 1
+
+                # Avança para a próxima semana
+                data_atual += timedelta(days=7)
+
+        # Salva todos os agendamentos de uma vez
+        db.commit()
+
+    except Exception:
+        # Desfaz as alterações se ocorrer algum erro
+        db.rollback()
+        raise
+
+    # Retorna um resumo da geração
+    return {
+        "mensagem": "Geração de agendamentos concluída.",
+        "id_contrato": id_contrato,
+        "agendamentos_criados": quantidade_criada,
+        "agendamentos_existentes": quantidade_existente
+    }
+
