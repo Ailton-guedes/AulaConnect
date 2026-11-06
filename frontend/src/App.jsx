@@ -4,6 +4,7 @@ import MenuLateral from './components/MenuLateral'
 import Cabecalho from './components/Cabecalho'
 import Alunos from './pages/Alunos'
 import Aulas from './pages/Aulas'
+import Agendamentos from './pages/Agendamentos'
 
 import Inicio from './pages/Inicio'
 import Responsaveis from './pages/Responsaveis'
@@ -26,6 +27,8 @@ function App() {
           <Route path= "/alunos" element={<Alunos />} /> {/* Página de alunos */}
           <Route path="/responsaveis" element={<Responsaveis />} /> {/* Página de responsáveis */}
           <Route path="/aulas" element={<Aulas />} />
+          <Route path="/agendamentos" element={<Agendamentos />} /> {/* Página de agendamentos */}
+
         </Routes>
 
       </main>
