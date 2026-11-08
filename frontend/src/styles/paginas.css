@@ -262,9 +262,7 @@
     }
 }
 
-/* ========================================
-   AGENDA SEMANAL
-   ======================================== */
+/* AGENDA SEMANAL */
 
 /* Cabeçalho com período e botões de navegação */
 .agenda-cabecalho {
@@ -360,9 +358,62 @@
     text-align: center;
 }
 
-/* ========================================
-   RESPONSIVIDADE DA AGENDA
-   ======================================== */
+/* CARTÕES DOS AGENDAMENTOS */
+
+/* Organiza as aulas dentro de cada dia */
+.agenda-dia-conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+}
+/* Cartão individual de cada aula */
+.agenda-aula {
+    display: flex;
+    flex-direction: column;
+    /* Cartão individual de cada aula */
+    align-items: center;
+    text-align: center;
+    /* Espaçamento entre horário, aluno e status */
+    gap: 12px;
+    padding: 20px 14px;
+    border: 1px solid #dbeafe;
+    border-left: 4px solid #436de1;
+}
+/* Destaca o horário da aula */
+.agenda-aula-horario {
+    color: #436de1;
+    font-size: 22px;
+    font-weight: 700;
+}
+/* Destaca o horário da aula */
+.agenda-dia-conteudo .agenda-aula p {
+    margin: 0;
+    color: #3b2d1e;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    
+}
+/* Descrição da aula, exemplo: Natação Kids */
+.agenda-aula-discricao {
+    color: #475569;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+}
+/* Status da aula */
+.agenda-aula-status{
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background-color: #dcfce7;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+/* RESPONSIVIDADE DA AGENDA */
 
 /* Tablets: dois cards por linha */
 @media (max-width: 1100px) {
@@ -385,4 +436,29 @@
     .agenda-dia {
         min-height: 200px;
     }
+}
+
+/* Botão para marcar a aula como concluída */
+.botao-concluir-aula {
+    width: auto;
+    margin-top: 8px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: #436de1;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Efeito quando o mouse passa sobre o botão */
+.botao-concluir-aula:hover:not(:disabled) {
+    background-color: #3157c5;
+}
+
+/* Aparência durante o salvamento */
+.botao-concluir-aula:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

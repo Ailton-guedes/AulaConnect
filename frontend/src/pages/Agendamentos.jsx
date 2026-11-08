@@ -1,8 +1,16 @@
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays
+} from 'lucide-react';
 
-// Nomes dos dias exibidos no calendário
+import apiRequest from '../services/api';
+
+//  CONFIGURAÇÕES DO CALENDÁRIO
+
+// Dias que serão exibidos na agenda
 const nomesDias = [
   'Segunda',
   'Terça',
@@ -12,75 +20,282 @@ const nomesDias = [
   'Sábado'
 ];
 
-// Converte uma data para o formato brasileiro
+// Formata a data para o padrão brasileiro
+// Exemplo: 09/11/2026
 function formatarData(data) {
   return data.toLocaleDateString('pt-BR');
+}
+
+// Converte uma data JavaScript para YYYY-MM-DD
+// Exemplo: 2026-11-09
+function dataParaISO(data) {
+  const ano = data.getFullYear();
+
+  const mes = String(
+    data.getMonth() + 1
+  ).padStart(2, '0');
+
+  const dia = String(
+    data.getDate()
+  ).padStart(2, '0');
+
+  return `${ano}-${mes}-${dia}`;
 }
 
 // Encontra a segunda-feira da semana informada
 function obterInicioSemana(data) {
   const inicio = new Date(data);
 
-  // Converte domingo (0) para o último dia da semana
+  // JavaScript: domingo = 0, segunda = 1
+  // Ajustamos para segunda = 0
   const diaSemana = (inicio.getDay() + 6) % 7;
 
-  inicio.setDate(inicio.getDate() - diaSemana);
+  inicio.setDate(
+    inicio.getDate() - diaSemana
+  );
+
   inicio.setHours(0, 0, 0, 0);
 
   return inicio;
 }
 
+
+// COMPONENTE PRINCIPAL
+
 function Agendamentos() {
 
-  // Guarda a segunda-feira da semana selecionada
+  // Controla qual semana está sendo exibida
   const [inicioSemana, setInicioSemana] = useState(
     () => obterInicioSemana(new Date())
   );
 
-  // Avança ou retrocede a quantidade de dias informada
+  // Armazena os dados recebidos do backend
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [alunos, setAlunos] = useState([]);
+  const [aulas, setAulas] = useState([]);
+
+  // Controla carregamento e erros
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  // Identifica qual aula está sendo atualizada
+  const [atualizandoId, setAtualizandoId] = useState(null);
+
+  //  BUSCAR DADOS DA API
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarDados() {
+      try {
+        setCarregando(true);
+        setErro('');
+
+        // Executa as três consultas ao backend
+        const [
+          dadosAgendamentos,
+          dadosAlunos,
+          dadosAulas
+        ] = await Promise.all([
+          apiRequest('/agendamento/'),
+          apiRequest('/alunos/'),
+          apiRequest('/aulas/')
+        ]);
+
+        // Evita atualizar um componente desmontado
+        if (!ativo) return;
+
+        // Armazena os resultados no React
+        setAgendamentos(dadosAgendamentos);
+        setAlunos(dadosAlunos);
+        setAulas(dadosAulas);
+
+      } catch (error) {
+        if (ativo) {
+          setErro(error.message);
+        }
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    }
+
+    carregarDados();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  // NAVEGAÇÃO ENTRE SEMANAS
+
   function mudarSemana(dias) {
     setInicioSemana((semanaAtual) => {
       const novaSemana = new Date(semanaAtual);
-      novaSemana.setDate(novaSemana.getDate() + dias);
+
+      novaSemana.setDate(
+        novaSemana.getDate() + dias
+      );
 
       return novaSemana;
     });
   }
 
-  // Cria os sete dias da semana selecionada
-  const diasSemana = Array.from({ length: 6 }, (_, indice) => {
-    const data = new Date(inicioSemana);
-    data.setDate(data.getDate() + indice);
+  // Cria os seis dias da semana selecionada
+  const diasSemana = Array.from(
+    { length: 6 },
+    (_, indice) => {
+      const data = new Date(inicioSemana);
 
-    return data;
-  });
+      data.setDate(
+        data.getDate() + indice
+      );
 
-  // Último dia da semana
+      return data;
+    }
+  );
+
+  // Sábado é o último dia exibido
   const fimSemana = diasSemana[5];
 
+  
+  //  LOCALIZAR ALUNOS E AULAS
+
+  // Procura o nome do aluno pelo ID
+  function obterNomeAluno(idAluno) {
+    const aluno = alunos.find(
+      (item) => item.id_aluno === idAluno
+    );
+
+    return aluno
+      ? aluno.nome
+      : `Aluno #${idAluno}`;
+  }
+
+  // Procura a descrição da aula pelo ID
+  function obterDescricaoAula(idAula) {
+    if (idAula == null) {
+      return 'Aula não informada';
+    }
+
+    const aula = aulas.find(
+      (item) => item.id_aula === idAula
+    );
+
+    return aula
+      ? aula.descricao
+      : `Aula #${idAula}`;
+  }
+
+  // FILTRAR AGENDAMENTOS POR DIA
+
+  function agendamentosDoDia(data) {
+    const dataISO = dataParaISO(data);
+
+    return agendamentos
+      .filter(
+        (item) => item.data_aula === dataISO
+      )
+      .sort((a, b) =>
+        (a.horario_inicio || '').localeCompare(
+          b.horario_inicio || ''
+        )
+      );
+  }
+
+  // 7. CONCLUIR UMA AULA
+
+  async function concluirAula(agendamento) {
+
+    // Impede concluir novamente uma aula já concluída
+    if (
+      agendamento.status?.toLowerCase() !== 'agendado'
+    ) {
+      return;
+    }
+
+    // Confirma a operação com o usuário
+    const confirmar = window.confirm(
+      'Deseja marcar esta aula como concluída?'
+    );
+
+    if (!confirmar) return;
+
+    setErro('');
+    setAtualizandoId(agendamento.id_agendamento);
+
+    // Mantém os dados originais e altera o status
+    const dadosAtualizados = {
+      id_aluno: agendamento.id_aluno,
+      id_aula: agendamento.id_aula,
+      id_contrato: agendamento.id_contrato,
+      data_aula: agendamento.data_aula,
+      horario_inicio: agendamento.horario_inicio,
+      tipo_agendamento: agendamento.tipo_agendamento,
+      status: 'concluido'
+    };
+
+    try {
+
+      // Envia os dados atualizados ao FastAPI
+      await apiRequest(
+        `/agendamento/${agendamento.id_agendamento}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(dadosAtualizados)
+        }
+      );
+
+      // Atualiza o status na lista do React
+      setAgendamentos((listaAtual) =>
+        listaAtual.map((item) =>
+          item.id_agendamento === agendamento.id_agendamento
+            ? { ...item, status: 'concluido' }
+            : item
+        )
+      );
+
+    } catch (error) {
+      setErro(error.message);
+
+    } finally {
+      setAtualizandoId(null);
+    }
+  }
+
+  // 8. EXIBIR A INTERFACE
+  
   return (
     <section className="pagina-alunos">
 
       {/* Título da página */}
       <div className="titulo-pagina">
         <h2>Agenda de Aulas</h2>
-        <p>Visualize os agendamentos semanais dos alunos.</p>
+
+        <p>
+          Visualize e gerencie os agendamentos
+          semanais dos alunos.
+        </p>
       </div>
 
-      {/* Painel principal da agenda */}
+      {/* Painel principal */}
       <div className="painel-pagina">
 
-        {/* Navegação entre as semanas */}
+        {/* Cabeçalho da agenda */}
         <div className="agenda-cabecalho">
 
           <div className="agenda-periodo">
             <CalendarDays size={22} />
 
             <h3>
-              {formatarData(inicioSemana)} até {formatarData(fimSemana)}
+              {formatarData(inicioSemana)}
+              {' até '}
+              {formatarData(fimSemana)}
             </h3>
           </div>
 
+          {/* Botões para navegar pelas semanas */}
           <div className="agenda-navegacao">
 
             <button
@@ -111,31 +326,124 @@ function Agendamentos() {
           </div>
         </div>
 
-        {/* Grade com os sete dias da semana */}
-        <div className="agenda-grade">
+        {/* Mensagens de carregamento e erro */}
+        {carregando && (
+          <p className="mensagem-lista">
+            Carregando agendamentos...
+          </p>
+        )}
 
-          {diasSemana.map((data, indice) => (
+        {erro && (
+          <p className="mensagem-lista" role="alert">
+            Erro: {erro}
+          </p>
+        )}
 
-            <div
-              className="agenda-dia"
-              key={formatarData(data)}
-            >
+        {/* Grade dos seis dias */}
+        {!carregando && (
+          <div className="agenda-grade">
 
-              <div className="agenda-dia-cabecalho">
-                <strong>{nomesDias[indice]}</strong>
-                <span>{formatarData(data)}</span>
-              </div>
+            {diasSemana.map((data, indice) => {
 
-              {/* Espaço reservado para os agendamentos */}
-              <div className="agenda-dia-conteudo">
-                <p>Nenhuma aula exibida</p>
-              </div>
+              const agendamentosDia =
+                agendamentosDoDia(data);
 
-            </div>
+              return (
+                <div
+                  className="agenda-dia"
+                  key={dataParaISO(data)}
+                >
 
-          ))}
+                  {/* Cabeçalho de cada dia */}
+                  <div className="agenda-dia-cabecalho">
+                    <strong>
+                      {nomesDias[indice]}
+                    </strong>
 
-        </div>
+                    <span>
+                      {formatarData(data)}
+                    </span>
+                  </div>
+
+                  {/* Aulas cadastradas no dia */}
+                  <div className="agenda-dia-conteudo">
+
+                    {agendamentosDia.length === 0 ? (
+
+                      <p>Nenhuma aula agendada</p>
+
+                    ) : (
+
+                      agendamentosDia.map(
+                        (agendamento) => (
+
+                          <div
+                            className="agenda-aula"
+                            key={agendamento.id_agendamento}
+                          >
+
+                            {/* Horário da aula */}
+                            <strong className="agenda-aula-horario">
+                              {agendamento.horario_inicio
+                                ? String(
+                                    agendamento.horario_inicio
+                                  ).slice(0, 5)
+                                : 'Horário não informado'}
+                            </strong>
+
+                            {/* Nome do aluno */}
+                            <p>
+                              {obterNomeAluno(
+                                agendamento.id_aluno
+                              )}
+                            </p>
+
+                            {/* Descrição da aula */}
+                            <span className="agenda-aula-descricao">
+                              {obterDescricaoAula(
+                                agendamento.id_aula
+                              )}
+                            </span>
+
+                            {/* Status da aula */}
+                            <span className="agenda-aula-status">
+                              {agendamento.status}
+                            </span>
+
+                            {/* Botão para concluir aula */}
+                            {agendamento.status?.toLowerCase() ===
+                              'agendado' && (
+
+                              <button
+                                type="button"
+                                className="botao-concluir-aula"
+                                disabled={
+                                  atualizandoId !== null
+                                }
+                                onClick={() =>
+                                  concluirAula(agendamento)
+                                }
+                              >
+                                {atualizandoId ===
+                                  agendamento.id_agendamento
+                                  ? 'Salvando...'
+                                  : 'Concluir aula'}
+                              </button>
+
+                            )}
+
+                          </div>
+                        )
+                      )
+                    )}
+
+                  </div>
+                </div>
+              );
+            })}
+
+          </div>
+        )}
 
       </div>
     </section>
