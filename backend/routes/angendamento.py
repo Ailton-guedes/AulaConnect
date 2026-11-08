@@ -2,10 +2,11 @@
 # Recursos do FastAPI para criar rotas e tratar erros
 from fastapi import APIRouter, Depends, HTTPException, status
 
-# Permite trabalhar com sessões do banco de dados
+# Recursos do SQLAlchemy
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-# Importa a conexão com o banco
+# Importa a conexão com o banco de dados
 from backend.database.connection import get_db
 
 # Importa os modelos necessários
@@ -20,6 +21,7 @@ from backend.schemas.agendamento import (
     AgendamentoResponse
 )
 
+
 # Define o grupo de rotas de agendamentos
 router = APIRouter(
     prefix="/agendamento",
@@ -27,8 +29,15 @@ router = APIRouter(
 )
 
 
-# Função auxiliar para validar os dados do agendamento
-def validar_agendamento(dados: AgendamentoCreate, db: Session):
+# ==========================================
+# VALIDAÇÃO DOS AGENDAMENTOS
+# ==========================================
+
+def validar_agendamento(
+    dados: AgendamentoCreate,
+    db: Session,
+    id_agendamento_atual: int | None = None
+):
 
     # Verifica se o aluno informado existe
     aluno = db.query(Aluno).filter(
@@ -43,6 +52,7 @@ def validar_agendamento(dados: AgendamentoCreate, db: Session):
 
     # Verifica se a aula informada existe
     if dados.id_aula is not None:
+
         aula = db.query(Aula).filter(
             Aula.id_aula == dados.id_aula
         ).first()
@@ -60,15 +70,16 @@ def validar_agendamento(dados: AgendamentoCreate, db: Session):
             detail="O tipo deve ser 'regular' ou 'experimental'."
         )
 
-    # Aulas experimentais não precisam de contrato
+    # Aulas experimentais não devem possuir contrato
     if dados.tipo_agendamento == "experimental":
+
         if dados.id_contrato is not None:
             raise HTTPException(
                 status_code=400,
                 detail="Aula experimental não deve possuir contrato."
             )
 
-    # Se um contrato foi informado, verifica sua validade
+    # Verifica o contrato, quando informado
     if dados.id_contrato is not None:
 
         contrato = db.query(Contrato).filter(
@@ -88,15 +99,14 @@ def validar_agendamento(dados: AgendamentoCreate, db: Session):
                 detail="O contrato não pertence ao aluno informado."
             )
 
-        # Apenas contratos ativos podem receber novas aulas
+        # O contrato precisa estar ativo
         if contrato.status != "ativo":
             raise HTTPException(
                 status_code=400,
                 detail="O contrato não está ativo."
             )
 
-        # Verifica se a data está dentro da vigência
-        # A data final não é incluída no período
+        # Verifica a vigência do contrato
         if not (
             contrato.data_inicio <= dados.data_aula < contrato.data_fim
         ):
@@ -105,8 +115,43 @@ def validar_agendamento(dados: AgendamentoCreate, db: Session):
                 detail="A data da aula está fora da vigência do contrato."
             )
 
+    # ==========================================
+    # VERIFICAÇÃO DE CONFLITOS
+    # ==========================================
 
-# Rota para cadastrar um agendamento
+    # Verifica conflitos somente quando existe horário
+    if dados.horario_inicio is not None:
+
+        # Procura outra aula do mesmo aluno
+        # na mesma data e no mesmo horário
+        conflito = db.query(Agendamento).filter(
+            Agendamento.id_aluno == dados.id_aluno,
+            Agendamento.data_aula == dados.data_aula,
+            Agendamento.horario_inicio == dados.horario_inicio,
+            func.lower(Agendamento.status) != "cancelado"
+        )
+
+        # Durante a edição, ignora o próprio agendamento
+        if id_agendamento_atual is not None:
+            conflito = conflito.filter(
+                Agendamento.id_agendamento != id_agendamento_atual
+            )
+
+        # Impede salvar quando existe conflito
+        if conflito.first() is not None:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Este aluno já possui uma aula "
+                    "agendada nesta data e horário."
+                )
+            )
+
+
+# ==========================================
+# CADASTRAR AGENDAMENTO
+# ==========================================
+
 @router.post(
     "/",
     response_model=AgendamentoResponse,
@@ -117,10 +162,10 @@ def cadastrar_agendamento(
     db: Session = Depends(get_db)
 ):
 
-    # Valida aluno, aula, tipo e contrato
+    # Valida os dados antes de cadastrar
     validar_agendamento(agendamento, db)
 
-    # Cria o agendamento com os novos campos
+    # Cria o novo registro
     novo_agendamento = Agendamento(
         id_aluno=agendamento.id_aluno,
         id_aula=agendamento.id_aula,
@@ -131,11 +176,12 @@ def cadastrar_agendamento(
         status=agendamento.status
     )
 
-    # Salva o agendamento no banco
+    # Salva no banco de dados
     try:
         db.add(novo_agendamento)
         db.commit()
         db.refresh(novo_agendamento)
+
     except Exception:
         db.rollback()
         raise
@@ -143,7 +189,10 @@ def cadastrar_agendamento(
     return novo_agendamento
 
 
-# Rota para listar todos os agendamentos
+# ==========================================
+# LISTAR AGENDAMENTOS
+# ==========================================
+
 @router.get(
     "/",
     response_model=list[AgendamentoResponse]
@@ -151,11 +200,17 @@ def cadastrar_agendamento(
 def listar_agendamentos(
     db: Session = Depends(get_db)
 ):
+
+    # Busca todos os agendamentos cadastrados
     agendamentos = db.query(Agendamento).all()
+
     return agendamentos
 
 
-# Rota para editar um agendamento existente
+# ==========================================
+# EDITAR AGENDAMENTO
+# ==========================================
+
 @router.put(
     "/{id_agendamento}",
     response_model=AgendamentoResponse
@@ -171,16 +226,42 @@ def editar_agendamento(
         Agendamento.id_agendamento == id_agendamento
     ).first()
 
+    # Verifica se o agendamento existe
     if agendamento is None:
         raise HTTPException(
             status_code=404,
             detail="Agendamento não encontrado."
         )
 
-    # Valida os novos dados antes de atualizar
-    validar_agendamento(dados, db)
+    # ==========================================
+    # PROTEÇÃO CONTRA REMARCAÇÃO INDEVIDA
+    # ==========================================
 
-    # Atualiza os campos
+    # Identifica alteração na data ou no horário
+    alterou_data_ou_horario = (
+        agendamento.data_aula != dados.data_aula
+        or agendamento.horario_inicio != dados.horario_inicio
+    )
+
+    # Impede remarcar aulas concluídas ou canceladas
+    if (
+        alterou_data_ou_horario
+        and agendamento.status.lower() != "agendado"
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Somente aulas agendadas podem ser remarcadas."
+        )
+
+    # Valida os novos dados e ignora o próprio
+    # agendamento na verificação de conflitos
+    validar_agendamento(
+        dados,
+        db,
+        id_agendamento_atual=id_agendamento
+    )
+
+    # Atualiza os campos do registro
     agendamento.id_aluno = dados.id_aluno
     agendamento.id_aula = dados.id_aula
     agendamento.id_contrato = dados.id_contrato
@@ -193,6 +274,7 @@ def editar_agendamento(
     try:
         db.commit()
         db.refresh(agendamento)
+
     except Exception:
         db.rollback()
         raise
@@ -200,7 +282,10 @@ def editar_agendamento(
     return agendamento
 
 
-# Rota para excluir um agendamento
+# ==========================================
+# EXCLUIR AGENDAMENTO
+# ==========================================
+
 @router.delete("/{id_agendamento}")
 def excluir_agendamento(
     id_agendamento: int,
@@ -212,18 +297,22 @@ def excluir_agendamento(
         Agendamento.id_agendamento == id_agendamento
     ).first()
 
+    # Verifica se existe
     if agendamento is None:
         raise HTTPException(
             status_code=404,
             detail="Agendamento não encontrado."
         )
 
-    # Exclui o registro e salva a alteração
+    # Exclui o registro
     try:
         db.delete(agendamento)
         db.commit()
+
     except Exception:
         db.rollback()
         raise
 
-    return {"mensagem": "Agendamento excluído com sucesso."}
+    return {
+        "mensagem": "Agendamento excluído com sucesso."
+    }

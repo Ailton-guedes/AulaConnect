@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import apiRequest from '../services/api';
+import Remarcacao from '../components/Remarcacao';
 
 //  CONFIGURAÇÕES DO CALENDÁRIO
 
@@ -80,7 +81,8 @@ function Agendamentos() {
 
   // Identifica qual aula está sendo atualizada
   const [atualizandoId, setAtualizandoId] = useState(null);
-
+ // Armazena a aula selecionada para remarcação
+  const [agendamentoRemarcacao, setAgendamentoRemarcacao] = useState(null);  
   //  BUSCAR DADOS DA API
 
   useEffect(() => {
@@ -204,7 +206,7 @@ function Agendamentos() {
       );
   }
 
-  // 7. CONCLUIR UMA AULA
+  // CONCLUIR UMA AULA
 
   async function concluirAula(agendamento) {
 
@@ -326,7 +328,18 @@ function Agendamentos() {
     }
    }
 
-  // 8. EXIBIR A INTERFACE
+ // Abre o formulário da aula selecionada
+function abrirRemarcacao(agendamento) {
+
+  if (agendamento.status?.toLowerCase() !== 'agendado') {
+    return;
+  }
+
+  setErro('');
+  setAgendamentoRemarcacao(agendamento);
+}
+
+  // EXIBIR A INTERFACE
   
   return (
     <section className="pagina-alunos">
@@ -399,6 +412,15 @@ function Agendamentos() {
           <p className="mensagem-lista" role="alert">
             Erro: {erro}
           </p>
+        )}
+      {/* Exibe o formulário quando uma aula é selecionada */}
+        {agendamentoRemarcacao && (
+          <Remarcacao
+            key={agendamentoRemarcacao.id_agendamento}
+            agendamento={agendamentoRemarcacao}
+            nomeAluno={obterNomeAluno(agendamentoRemarcacao.id_aluno)}
+            aoFechar={() => setAgendamentoRemarcacao(null)}
+          />
         )}
 
         {/* Grade dos seis dias */}
@@ -507,6 +529,15 @@ function Agendamentos() {
                           {atualizandoId === agendamento.id_agendamento
                           ? 'Salvando...'
                             : 'Cancelar aula'}
+                          </button>
+                          {/* Botão para remarcar aula */}
+                          <button
+                          type="button"
+                          className="botao-remarcar-aula"
+                          disabled={atualizandoId !== null}
+                          onClick={() => abrirRemarcacao(agendamento)}
+                          >
+                            Remarcar aula
                           </button>
                           </div>
                            )}

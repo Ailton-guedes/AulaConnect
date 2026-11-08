@@ -533,3 +533,129 @@
     font-size: 12px;
     font-weight: 600;
 }
+/* Botão para remarcar aulas */
+.botao-remarcar-aula {
+    background-color: #f59e0b;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+/* Efeito ao passar o mouse*/
+.botao-remarcar-aula:disabled {
+    background-color: #d97706;
+}
+/* Aparecencia quando estiver desabilitado */
+.botao-remarcar-aula:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================
+   FORMULÁRIO DE REMARCAÇÃO DE AULAS
+========================================== */
+
+/* Container principal */
+.agenda-formulario-remarcacao {
+  background-color: #8cf89a;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Título */
+.agenda-formulario-remarcacao h3 {
+  font-size: 20px;
+  color: #1e293b;
+  margin: 0 0 12px;
+}
+
+/* Nome do aluno */
+.agenda-formulario-remarcacao p {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* Organização dos campos */
+.agenda-campos-remarcacao {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Cada campo */
+.agenda-campos-remarcacao > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Rótulos */
+.agenda-campos-remarcacao label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Campos de data e horário */
+.agenda-campos-remarcacao input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+/* Destaque ao selecionar um campo */
+.agenda-campos-remarcacao input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Área dos botões */
+.agenda-acoes-remarcacao {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Botão Fechar */
+.agenda-acoes-remarcacao button {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agenda-acoes-remarcacao button:hover {
+  background-color: #e2e8f0;
+}
+
+/* Adaptação para telas pequenas */
+@media (max-width: 600px) {
+  .agenda-formulario-remarcacao {
+    padding: 16px;
+  }
+
+  .agenda-campos-remarcacao {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

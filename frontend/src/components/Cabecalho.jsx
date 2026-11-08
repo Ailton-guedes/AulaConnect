@@ -5,7 +5,7 @@ function Cabecalho() {
             {/* Título e descrição */}
             <div className="cabecalho-info">
                 <h2>Personal Kids</h2>
-                <p>Gestão de aulas em sum so lugar</p>
+                <p>Gestão de aulas em um so lugar</p>
             </div>
 
             {/* Campo de pesquisa */}

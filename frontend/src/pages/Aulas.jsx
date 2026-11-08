@@ -134,7 +134,7 @@ function Aulas() {
             <h1 className='titulo-pagina'>Gerenciamento de Aulas</h1>
             {/* Formulário de cadastro e edição */}
             <div className='painel-pagina'>
-              <h2>{aulaEditando ? 'Editar Aula' : 'Cdastrar Aula'}</h2>
+              <h2>{aulaEditando ? 'Editar Aula' : 'Cadastrar Aula'}</h2>
               <form className='formulario-pagina' onSubmit={salvarAula}>
                 <div className='campo'>
                     <label>Descrição da aula *</label>

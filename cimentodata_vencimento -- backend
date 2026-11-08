@@ -1,0 +1,164 @@
+[1mdiff --git a/backend/routes/pagamento.py b/backend/routes/pagamento.py[m
+[1mindex 9d1ad3d..41c5af4 100644[m
+[1m--- a/backend/routes/pagamento.py[m
+[1m+++ b/backend/routes/pagamento.py[m
+[36m@@ -1,95 +1,96 @@[m
+[32m+[m
+ # Importa os recursos necessários do FastAPI e do SQLAlchemy[m
+ from fastapi import APIRouter, Depends, HTTPException, status[m
+ from sqlalchemy.orm import Session[m
+ [m
+ # Importa a conexão com o banco de dados[m
+ from backend.database.connection import get_db[m
+ [m
+ # Importa os modelos do banco[m
+ from backend.models.pagamento import Pagamento[m
+ from backend.models.aluno import Aluno[m
+ [m
+ # Importa os schemas de entrada e resposta[m
+ from backend.schemas.pagamento import PagamentoCreate, PagamentoResponse[m
+ [m
+ # Cria o roteador de pagamentos[m
+ router = APIRouter([m
+     prefix="/pagamentos",[m
+     tags=["Pagamentos"][m
+ )[m
+[32m+[m
+[32m+[m
+ # Rota para cadastrar um pagamento[m
+ @router.post([m
+     "/",[m
+     response_model=PagamentoResponse,[m
+     status_code=status.HTTP_201_CREATED[m
+[31m-    )[m
+[32m+[m[32m)[m
+ def criar_pagamento([m
+     pagamento: PagamentoCreate,[m
+     db: Session = Depends(get_db)[m
+[31m-    ):[m
+[31m-[m
+[31m-    # Verificar se o aluno informado existe[m
+[32m+[m[32m):[m
+[32m+[m[32m    # Verifica se o aluno informado existe[m
+     aluno = db.query(Aluno).filter([m
+         Aluno.id_aluno == pagamento.id_aluno[m
+     ).first()[m
+ [m
+     if aluno is None:[m
+         raise HTTPException([m
+             status_code=status.HTTP_404_NOT_FOUND,[m
+             detail="Aluno não encontrado."[m
+         )[m
+[32m+[m
+     # Cria o pagamento com os dados recebidos[m
+     novo_pagamento = Pagamento(**pagamento.model_dump())[m
+ [m
+     try:[m
+         db.add(novo_pagamento)[m
+         db.commit()[m
+         db.refresh(novo_pagamento)[m
+     except Exception:[m
+[31m-        db.rollback[m
+[32m+[m[32m        db.rollback()[m
+         raise[m
+ [m
+     return novo_pagamento[m
+ [m
+[31m-# Rota para listar todos os pagmentos [m
+[31m-@router.get([m
+[31m-    "/",[m
+[31m-    response_model=list[PagamentoResponse])[m
+[31m-def listar_pagamentos([m
+[31m-    db: Session = Depends(get_db)[m
+[31m-    ):[m
+[31m-    pagamentos = db.query(Pagamento).all()[m
+[31m-    return pagamentos[m
+[32m+[m
+[32m+[m[32m# Rota para listar todos os pagamentos[m
+[32m+[m[32m@router.get("/", response_model=list[PagamentoResponse])[m
+[32m+[m[32mdef listar_pagamentos(db: Session = Depends(get_db)):[m
+[32m+[m[32m    return db.query(Pagamento).all()[m
+[32m+[m
+[32m+[m
+ # Rota para editar um pagamento existente[m
+[31m-@router.put("/{id_pagamento}", [m
+[32m+[m[32m@router.put([m
+[32m+[m[32m    "/{id_pagamento}",[m
+     response_model=PagamentoResponse[m
+ )[m
+ def editar_pagamento([m
+     id_pagamento: int,[m
+     dados: PagamentoCreate,[m
+     db: Session = Depends(get_db)[m
+ ):[m
+[31m-[m
+[31m-# Busca o pagamento pelo ID[m
+[32m+[m[32m    # Busca o pagamento pelo ID[m
+     pagamento = db.query(Pagamento).filter([m
+[31m-        Pagamento.id_pagamento == id.pagamento[m
+[32m+[m[32m        Pagamento.id_pagamento == id_pagamento[m
+     ).first()[m
+ [m
+     # Verifica se o pagamento existe[m
+     if pagamento is None:[m
+         raise HTTPException([m
+             status_code=status.HTTP_404_NOT_FOUND,[m
+             detail="Pagamento não encontrado."[m
+[31m-    )[m
+[32m+[m[32m        )[m
+ [m
+[31m-    # Verificar se o aluno informado existe[m
+[32m+[m[32m    # Verifica se o aluno informado existe[m
+     aluno = db.query(Aluno).filter([m
+         Aluno.id_aluno == dados.id_aluno[m
+     ).first()[m
+ [m
+     if aluno is None:[m
+         raise HTTPException([m
+             status_code=status.HTTP_404_NOT_FOUND,[m
+             detail="Aluno não encontrado."[m
+         )[m
+ [m
+[36m@@ -99,34 +100,37 @@[m [mdef editar_pagamento([m
+ [m
+     try:[m
+         db.commit()[m
+         db.refresh(pagamento)[m
+     except Exception:[m
+         db.rollback()[m
+         raise[m
+ [m
+     return pagamento[m
+ [m
+[32m+[m
+ # Rota para excluir um pagamento[m
+[31m-@router.delete("/{id.pagamento}")[m
+[32m+[m[32m@router.delete("/{id_pagamento}")[m
+ def excluir_pagamento([m
+     id_pagamento: int,[m
+     db: Session = Depends(get_db)[m
+ ):[m
+[31m-# Busca o pagamento pelo ID[m
+[32m+[m[32m    # Busca o pagamento pelo ID[m
+     pagamento = db.query(Pagamento).filter([m
+         Pagamento.id_pagamento == id_pagamento[m
+     ).first()[m
+[31m-# Verifica se o pagamento existe[m
+[32m+[m
+[32m+[m[32m    # Verifica se o pagamento existe[m
+     if pagamento is None:[m
+         raise HTTPException([m
+             status_code=status.HTTP_404_NOT_FOUND,[m
+[31m-            detail="Pagamento não encontrado"[m
+[32m+[m[32m            detail="Pagamento não encontrado."[m
+         )[m
+[32m+[m
+     try:[m
+         db.delete(pagamento)[m
+         db.commit()[m
+     except Exception:[m
+         db.rollback()[m
+         raise[m
+ [m
+[31m-    return {"Pagamento excluído com sucesso."}[m
+[32m+[m[32m    return {"mensagem": "Pagamento excluído com sucesso."}[m
