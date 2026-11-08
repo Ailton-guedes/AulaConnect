@@ -263,6 +263,68 @@ function Agendamentos() {
       setAtualizandoId(null);
     }
   }
+   // CANCELAR UMA AULA
+   async function cancelarAula(agendamento) {
+
+    // Permite cancelar somente aulas agendadas
+    if (
+      agendamento.status?.toLowerCase() !== 'agendado'
+    ){
+      return;
+    }
+
+    // Solicita confirmação ao professor
+    const confirmar = window.confirm(
+      'Deseja realmete cancelar esta aula?'
+    );
+
+    if (!confirmar) return;
+
+    // Limpa mensagens anteriores
+    setErro('');
+
+    // Identifica qual agendamento está sendo atualizado
+    setAtualizandoId(agendamento.id_agendamento);
+
+    // Mantém os dados originais e altera apenas o status
+    const dadosAtualizados = {
+      id_aluno: agendamento.id_aluno,
+      id_aula: agendamento.id_aula,
+      id_contrato: agendamento.id_contrato,
+      data_aula: agendamento.data_aula,
+      horario_inicio: agendamento.horario_inicio,
+      tipo_agendamento: agendamento.tipo_agendamento,
+      status: 'cancelado'
+    };
+
+    try {
+      
+      // Envia a atualização para o backend
+      await apiRequest(
+        `/agendamento/${agendamento.id_agendamento}`,
+        {
+          method:'PUT',
+          body: JSON.stringify(dadosAtualizados)
+        }
+      );
+
+      // Atualiza p status na tela sem ecarregar
+      setAgendamentos((listaAtual) =>
+        listaAtual.map((item) =>
+          item.id_agendamento === agendamento.id_agendamento
+            ?{ ...item, status: 'cancelado'}
+            : item
+        )
+      );
+    } catch (error) {
+      // Mostra o erro caso a API não consiga atualizar
+      setErro(error.message);
+
+    } finally{
+      // libera os botões após a operação
+      setAtualizandoId(null);
+    }
+   }
 
   // 8. EXIBIR A INTERFACE
   
@@ -363,6 +425,11 @@ function Agendamentos() {
                     <span>
                       {formatarData(data)}
                     </span>
+                  {/* Quantidade total de aulas do dia */}
+                    <span className="agenda-total-aulas">
+                      {`${agendamentosDia.length} ${agendamentosDia.length === 1 ? 'aula' : 'aulas'}`}
+                     </span>
+
                   </div>
 
                   {/* Aulas cadastradas no dia */}
@@ -405,34 +472,45 @@ function Agendamentos() {
                               )}
                             </span>
 
-                            {/* Status da aula */}
-                            <span className="agenda-aula-status">
+                            {/* Status da aula com cor correspondente*/}
+                            <span 
+                            className={`agenda-aula-status status-${agendamento.status?.toLowerCase()}`}
+                            >
                               {agendamento.status}
                             </span>
 
-                            {/* Botão para concluir aula */}
-                            {agendamento.status?.toLowerCase() ===
-                              'agendado' && (
+                          
+                          {/* Botões disponíveis para aulas agendadas */}
+                          {agendamento.status?.toLowerCase() === 'agendado' && (
 
-                              <button
-                                type="button"
-                                className="botao-concluir-aula"
-                                disabled={
-                                  atualizandoId !== null
-                                }
-                                onClick={() =>
-                                  concluirAula(agendamento)
-                                }
-                              >
-                                {atualizandoId ===
-                                  agendamento.id_agendamento
-                                  ? 'Salvando...'
-                                  : 'Concluir aula'}
-                              </button>
+                          <div className="agenda-acoes">
 
-                            )}
+                          {/* Botão para concluir a aula */}
+                          <button
+                            type="button"
+                            className="botao-concluir-aula"
+                            disabled={atualizandoId !== null}
+                            onClick={() => concluirAula(agendamento)}
+                                >
+                            {atualizandoId === agendamento.id_agendamento
+                            ? 'Salvando...'
+                            : 'Concluir aula'}
+                          </button>
 
+                          {/* Botão para cancelar a aula */}
+                          <button
+                          type="button"
+                          className="botao-cancelar-aula"
+                          disabled={atualizandoId !== null}
+                          onClick={() => cancelarAula(agendamento)}
+                            >
+                          {atualizandoId === agendamento.id_agendamento
+                          ? 'Salvando...'
+                            : 'Cancelar aula'}
+                          </button>
                           </div>
+                           )}
+                        </div>
                         )
                       )
                     )}

@@ -407,11 +407,24 @@
     display: inline-block;
     padding: 6px 14px;
     border-radius: 6px;
-    background-color: #dcfce7;
-    color: #166534;
     font-size: 12px;
     font-weight: 600;
     text-transform: capitalize;
+}
+/* Aula que ainda será realizada */
+.agenda-aula-status.status-agendado {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+/* Aula realizada */
+.status-concluido {
+    background-color: #defec7;
+    color: #166534;
+}
+/* Aula cancelada */
+.status-cancelado {
+    background-color: #fee2e2;
+    color: #b91c1c;
 }
 /* RESPONSIVIDADE DA AGENDA */
 
@@ -461,4 +474,62 @@
 .botao-concluir-aula:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Organiza os dois botões lado a lado */
+.agenda-acoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Remove a margem superior do botão concluir */
+.agenda-acoes .botao-concluir-aula {
+    margin-top: 0;
+}
+
+/* Botão cancelar aula */
+.botao-cancelar-aula {
+    min-width: 130px;
+    max-width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #dc3545;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Efeito ao passar o mouse */
+.botao-cancelar-aula:hover:not(:disabled) {
+    background-color: #b02a37;
+}
+
+/* Aparência durante o salvamento */
+.botao-cancelar-aula:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+/* Rolagem interna dos agendamentos de cada dia */
+.agenda-dia-conteudo {
+    max-height: 480px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+/*   CONTADOR DE AULAS POR DIA */
+/* Destaca a quantidade de aulas no cabeçalho */
+.agenda-dia-cabecalho .agenda-total-aulas {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
 }
