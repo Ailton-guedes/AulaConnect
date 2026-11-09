@@ -18,7 +18,8 @@ from backend.models.contrato import Contrato
 # Importa os schemas de validação e resposta
 from backend.schemas.agendamento import (
     AgendamentoCreate,
-    AgendamentoResponse
+    AgendamentoResponse,
+    PresencaUpdate
 )
 
 
@@ -38,6 +39,12 @@ def validar_agendamento(
     db: Session,
     id_agendamento_atual: int | None = None
 ):
+    # A frequência só pode ser alterada pela rota PATCH
+    if "presenca" in dados.model_fields_set:
+        raise HTTPException(
+        status_code=400,
+        detail="Utilize a rota específica para registrar presença."
+    )
 
     # Verifica se o aluno informado existe
     aluno = db.query(Aluno).filter(
@@ -78,6 +85,17 @@ def validar_agendamento(
                 status_code=400,
                 detail="Aula experimental não deve possuir contrato."
             )
+
+    # ==========================================
+    # NOVO AJUSTE 1: VALIDAR A PRESENÇA
+    # ==========================================
+
+    # Aceita apenas presente, falta ou None
+    if dados.presenca not in (None, "presente", "falta"):
+        raise HTTPException(
+            status_code=422,
+            detail="A presença deve ser 'presente', 'falta' ou nula."
+        )
 
     # Verifica o contrato, quando informado
     if dados.id_contrato is not None:
@@ -173,7 +191,9 @@ def cadastrar_agendamento(
         data_aula=agendamento.data_aula,
         horario_inicio=agendamento.horario_inicio,
         tipo_agendamento=agendamento.tipo_agendamento,
-        status=agendamento.status
+        # Todo novo agendamento começa sem frequência registrada
+        status=agendamento.status,
+        presenca=None
     )
 
     # Salva no banco de dados
@@ -271,6 +291,60 @@ def editar_agendamento(
     agendamento.status = dados.status
 
     # Salva as alterações
+    try:
+        db.commit()
+        db.refresh(agendamento)
+
+    except Exception:
+        db.rollback()
+        raise
+
+    return agendamento
+# ==========================================
+# REGISTRAR PRESENÇA OU FALTA
+# ==========================================
+
+@router.patch(
+    "/{id_agendamento}/presenca",
+    response_model=AgendamentoResponse
+)
+def registrar_presenca(
+    id_agendamento: int,
+    dados: PresencaUpdate,
+    db: Session = Depends(get_db)
+):
+
+    # Busca o agendamento pelo ID
+    agendamento = db.query(Agendamento).filter(
+        Agendamento.id_agendamento == id_agendamento
+    ).first()
+
+    # Verifica se o agendamento existe
+    if agendamento is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Agendamento não encontrado."
+        )
+
+    # Permite registrar frequência somente
+    # em aulas com status concluído
+    if agendamento.status.lower() != "concluido":
+        raise HTTPException(
+            status_code=400,
+            detail="Somente aulas concluídas podem receber frequência."
+        )
+
+    # Valida os valores permitidos
+    if dados.presenca not in ("presente", "falta"):
+        raise HTTPException(
+            status_code=422,
+            detail="A presença deve ser 'presente' ou 'falta'."
+        )
+
+    # Atualiza a frequência do aluno
+    agendamento.presenca = dados.presenca
+
+    # Salva no MySQL
     try:
         db.commit()
         db.refresh(agendamento)

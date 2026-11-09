@@ -64,3 +64,10 @@ class Agendamento(Base):
         String(30),
         nullable=False
     )
+    # Registra a frequência do aluno na aula
+    # None significa que a presença ainda não foi registrada
+    presenca = Column(
+        String(20),
+        nullable=True,
+        default=None
+    )

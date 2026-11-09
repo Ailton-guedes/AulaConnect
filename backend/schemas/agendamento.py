@@ -29,6 +29,9 @@ class AgendamentoCreate(BaseModel):
     # Situação do agendamento
     status: str
 
+    # Frequência do aluno 
+    presenca: str | None =  None
+
 
 # Define os dados retornados pela API
 class AgendamentoResponse(BaseModel):
@@ -44,3 +47,10 @@ class AgendamentoResponse(BaseModel):
     horario_inicio: time | None = None
     tipo_agendamento: str
     status: str
+    presenca: str | None = None
+
+# Dados recebidos para registrar a frequência do aluno
+class PresencaUpdate(BaseModel):
+
+    # Aceita somente presente ou falta
+    presenca: str
