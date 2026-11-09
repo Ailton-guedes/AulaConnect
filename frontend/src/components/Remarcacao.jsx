@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 // Componente responsável pelo formulário de remarcação
-function Remarcacao({ agendamento, nomeAluno, aoFechar }) {
+function Remarcacao({ agendamento, nomeAluno, aoFechar, aoSalvar, salvando}) {
 
   // Guarda a data selecionada
   const [novaData, setNovaData] = useState(
@@ -13,9 +13,22 @@ function Remarcacao({ agendamento, nomeAluno, aoFechar }) {
   const [novoHorario, setNovoHorario] = useState(
     agendamento.horario_inicio?.slice(0, 5) || ''
   );
+  // Envia a nova data e o horário para o componente pai
+  function salvarRemarcacao(evento) {
+    evento.preventDefault();
 
+    // Verifica se os dois campos foram preenchidos
+    if (!novaData || !novoHorario) {
+      return;
+    }
+    aoSalvar(novaData, novoHorario);
+  }
   return (
-    <div className="agenda-formulario-remarcacao">
+    
+    <form
+    className="agenda-formulario-remarcacao"
+    onSubmit={salvarRemarcacao}
+>
 
       <h3>Remarcar aula</h3>
 
@@ -34,6 +47,7 @@ function Remarcacao({ agendamento, nomeAluno, aoFechar }) {
             type="date"
             value={novaData}
             onChange={(e) => setNovaData(e.target.value)}
+            required
           />
         </div>
 
@@ -48,6 +62,7 @@ function Remarcacao({ agendamento, nomeAluno, aoFechar }) {
             type="time"
             value={novoHorario}
             onChange={(e) => setNovoHorario(e.target.value)}
+            required
           />
         </div>
 
@@ -57,12 +72,19 @@ function Remarcacao({ agendamento, nomeAluno, aoFechar }) {
         <button
           type="button"
           onClick={aoFechar}
+          disabled={salvando}
         >
           Fechar
         </button>
+        <button
+          type="submit"
+          disabled={salvando}
+        >
+          {salvando ? 'salvando...' : 'Salvar remarcação'}
+        </button>
       </div>
 
-    </div>
+    </form>
   );
 }
 

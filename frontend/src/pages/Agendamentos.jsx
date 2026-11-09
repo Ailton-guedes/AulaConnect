@@ -338,7 +338,63 @@ function abrirRemarcacao(agendamento) {
   setErro('');
   setAgendamentoRemarcacao(agendamento);
 }
+// Salva a nova data e o horário da aula
+async function salvarRemarcacao(novaData, novoHorario) {
+  // Recupera a aula selecionada
+  const agendamento = agendamentoRemarcacao;
 
+  if (!agendamento || atualizandoId !== null) {
+    return;
+  }
+
+  // Limpa erros anteriores
+  setErro('');
+
+  // Identifica qual agendamento está sendo atualizado
+  setAtualizandoId(agendamento.id_agendamento);
+
+  // Mantém os dados existentes e altera data e horário
+  const dadosAtualizados = {
+    id_aluno: agendamento.id_aluno,
+    id_aula: agendamento.id_aula,
+    id_contrato: agendamento.id_contrato,
+    data_aula: novaData,
+    horario_inicio: novoHorario,
+    tipo_agendamento: agendamento.tipo_agendamento,
+    status: agendamento.status
+  };
+
+  try {
+    // Envia a remarcação ao FastAPI
+    const agendamentoAtualizado = await apiRequest(
+      `/agendamento/${agendamento.id_agendamento}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(dadosAtualizados)
+      }
+    );
+    // Atualiza a lista sem recarregar a página
+    setAgendamentos((listaAtual) => 
+      listaAtual.map((item) =>
+      item.id_agendamento === agendamento.id_agendamento
+        ? agendamentoAtualizado
+        : item
+
+      )
+    );
+    // Fecha o formulário opós salvar
+    setAgendamentoRemarcacao(null);
+
+  }catch (error) {
+    // Exibe erros, encluindo conflitos HTTP 409
+    setErro(error.message);
+
+  } finally {
+    // Libera os botões
+    setAtualizandoId(null);
+  }
+
+}
   // EXIBIR A INTERFACE
   
   return (
@@ -420,6 +476,8 @@ function abrirRemarcacao(agendamento) {
             agendamento={agendamentoRemarcacao}
             nomeAluno={obterNomeAluno(agendamentoRemarcacao.id_aluno)}
             aoFechar={() => setAgendamentoRemarcacao(null)}
+            aoSalvar={salvarRemarcacao}
+            salvando={atualizandoId !== null}
           />
         )}
 
