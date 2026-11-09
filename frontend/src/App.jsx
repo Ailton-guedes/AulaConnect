@@ -8,6 +8,7 @@ import Agendamentos from './pages/Agendamentos'
 
 import Inicio from './pages/Inicio'
 import Responsaveis from './pages/Responsaveis'
+import Frequencia from './pages/Frequencia'
 
 function App() {
   return (
@@ -27,7 +28,8 @@ function App() {
           <Route path= "/alunos" element={<Alunos />} /> {/* Página de alunos */}
           <Route path="/responsaveis" element={<Responsaveis />} /> {/* Página de responsáveis */}
           <Route path="/aulas" element={<Aulas />} />
-          <Route path="/agendamentos" element={<Agendamentos />} /> {/* Página de agendamentos */}
+          <Route path="/agendamentos" element={<Agendamentos />} /> {/* Página de agendamentos */}     
+          <Route path="/frequencia" element={<Frequencia />} /> {/* Página de controle de frequência */}
 
         </Routes>
 
