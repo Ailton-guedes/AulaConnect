@@ -70,30 +70,59 @@ CREATE TABLE aulas (
     observacoes TEXT
 ) ENGINE=InnoDB;
 
--- =====================================================
--- 5. PLANOS
--- =====================================================
+
+-- 5. TABELA: PLANOS
+-- Define os planos oferecidos pelo professor
+-- ============================================
 
 CREATE TABLE planos (
     id_plano INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(50) NOT NULL,
-    duracao_meses INT NOT NULL,
-    valor_mensal DECIMAL(10,2) NOT NULL,
-    ativo BOOLEAN DEFAULT TRUE
-) ENGINE=InnoDB;
 
--- =====================================================
+    nome VARCHAR(50) NOT NULL,
+
+    -- Duração do plano em meses
+    duracao_meses INT NOT NULL,
+
+    -- Quantidade de aulas por semana
+    -- NULL permitido para registros antigos de teste
+    aulas_por_semana INT NULL,
+
+    -- Valor cobrado mensalmente
+    valor_mensal DECIMAL(10,2) NOT NULL,
+
+    -- Informações adicionais sobre o plano
+    descricao TEXT,
+
+    -- Indica se o plano está disponível
+    ativo BOOLEAN DEFAULT TRUE,
+
+    -- Data em que o plano foi cadastrado
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 6. CONTRATOS
--- =====================================================
+-- Vincula um aluno ao plano contratado
+-- ============================================
 
 CREATE TABLE contratos (
     id_contrato INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Aluno que contratou o plano
     id_aluno INT NOT NULL,
+
+    -- Plano escolhido
     id_plano INT NOT NULL,
+
+    -- Período do contrato
     data_inicio DATE NOT NULL,
     data_fim DATE NOT NULL,
+
+    -- Valor acordado no momento da contratação
     valor_mensal DECIMAL(10,2) NOT NULL,
+
+    -- Situação do contrato
     status VARCHAR(30) NOT NULL DEFAULT 'ativo',
+
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (id_aluno)
@@ -101,7 +130,7 @@ CREATE TABLE contratos (
 
     FOREIGN KEY (id_plano)
         REFERENCES planos(id_plano)
-) ENGINE=InnoDB;
+);
 
 -- =====================================================
 -- 7. HORARIOS DO CONTRATO

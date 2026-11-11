@@ -71,11 +71,57 @@ VALUES
 -- =====================================================
 
 INSERT INTO planos
-(nome, duracao_meses, valor_mensal, ativo)
+(
+    nome,
+    duracao_meses,
+    aulas_por_semana,
+    valor_mensal,
+    descricao,
+    ativo
+)
 VALUES
-('Mensal', 1, 180.00, TRUE),
-('Trimestral', 3, 170.00, TRUE),
-('Semestral', 6, 160.00, TRUE);
+(
+    'Mensal - 1 aula semanal',
+    1, 1, 0.00,
+    'Plano mensal com uma aula por semana',
+    1
+),
+(
+    'Trimestral - 1 aula semanal',
+    3, 1, 0.00,
+    'Plano trimestral com uma aula por semana',
+    1
+),
+(
+    'Semestral - Teste',
+    6, NULL, 0.00,
+    'Plano antigo utilizado para testes',
+    0
+),
+(
+    'Mensal - 2 aulas semanais',
+    1, 2, 0.00,
+    'Plano mensal com duas aulas por semana',
+    1
+),
+(
+    'Trimestral - 2 aulas semanais',
+    3, 2, 0.00,
+    'Plano trimestral com duas aulas por semana',
+    1
+),
+(
+    'Semestral - 1 aula semanal',
+    6, 1, 0.00,
+    'Plano semestral com uma aula por semana',
+    1
+),
+(
+    'Semestral - 2 aulas semanais',
+    6, 2, 0.00,
+    'Plano semestral com duas aulas por semana',
+    1
+);
 
 
 -- =====================================================
@@ -118,7 +164,7 @@ INSERT INTO agendamentos
  presenca, id_contrato, horario_inicio,
  tipo_agendamento)
 VALUES
-(1, 1, '2026-11-09', 'realizado',
+(1, 1, '2026-11-09', 'concluido',
  'presente', 1, '09:00:00', 'regular'),
 
 (2, 2, '2026-11-11', 'agendado',
@@ -168,7 +214,3 @@ VALUES
  'Inicio da adaptacao ao meio aquatico.',
  'Manter atividades ludicas.');
 
-
--- =====================================================
--- FIM DOS DADOS DE TESTE
--- =====================================================
