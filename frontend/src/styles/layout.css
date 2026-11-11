@@ -67,7 +67,7 @@
     justify-content: space-between;
     gap: 24px;
     padding: 24px 32px;
-    background-color: rgb(244, 137, 221);
+    background-color: rgb(250, 159, 230);
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -126,4 +126,10 @@
     .pesquisa {
         width: 100%;
     }
+}
+/* Alinha os ícones e textos do menu */
+.menu-lateral nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }

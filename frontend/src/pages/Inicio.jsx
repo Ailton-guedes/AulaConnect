@@ -50,7 +50,7 @@ function Inicio() {
           </div>
 
           <strong className="indicador-valor">
-            R$ 1.800,00
+            R$ 00,00
           </strong>
           <p>Valor demonstrativo</p>
         </article>
