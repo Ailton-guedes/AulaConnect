@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, Time, Text
 from backend.database.connection import Base
 
 
-# Representa a tabela alunos no banco de dados MySQL
+# Representa a tabela aulas no banco de dados MySQL
 class Aula(Base):
     __tablename__ = "aulas"
 
@@ -27,5 +27,5 @@ class Aula(Base):
     # Capacidade maxima de alunos
     capacidade = Column(Integer, nullable=True)
 
-    # Observações sobre o aluno
+    # Observações adicionais sobre a aula
     observacoes = Column(Text, nullable=True)

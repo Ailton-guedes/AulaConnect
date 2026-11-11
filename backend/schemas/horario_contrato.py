@@ -10,10 +10,10 @@ from datetime import time
 class HorarioContratoCreate(BaseModel):
 
     # Identifica o contrato ao qual o horário pertence
-    id_contrato: int
+    id_contrato: int = Field(gt=0)
 
-    # Identifica a aula (opcional)
-    id_aula: int | None = None
+    # Identifica a aula, quando informada
+    id_aula: int | None = Field(default=None, gt=0)
 
     # Dia da semana: 0 = segunda e 6 = domingo
     dia_semana: int = Field(ge=0, le=6)
@@ -25,11 +25,20 @@ class HorarioContratoCreate(BaseModel):
 # Dados retornados pela API
 class HorarioContratoResponse(BaseModel):
 
-    # Permite converter objetos do SQLAlchemy em respostas Pydantic
+    # Permite converter objetos SQLAlchemy em respostas
     model_config = ConfigDict(from_attributes=True)
 
+    # Identificador do horário cadastrado
     id_horario: int
+
+    # Contrato vinculado
     id_contrato: int
+
+    # Aula vinculada, quando existir
     id_aula: int | None = None
+
+    # Dia da semana
     dia_semana: int
+
+    # Horário de início
     horario_inicio: time
