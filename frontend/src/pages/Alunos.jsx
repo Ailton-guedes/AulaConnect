@@ -8,6 +8,15 @@ function Alunos() {
 
     // Guarda a lista de responsáveis cadastrados no banco
     const [responsaveis, setResponsaveis] = useState([]);
+    // Guarda os planos disponíveis cadastrados no banco
+    const [planos, setPlanos] = useState([]);
+    // Guarda o ID do plano selecionado na matrícula
+    const [planoSelecionado, setPlanoSelecionado] = useState("");
+    // Guarda a data de inicio do contrato
+    const [dataInicioContrato, setDataInicioContrato] = useState("");
+    // Guarda o valor mensal definido para o contrato
+    const [valorMensal, setValorMensal] = useState("");
+
 
     // Guarda os dados preenchidos no formulário
     const [nome, setNome] = useState("");
@@ -15,6 +24,10 @@ function Alunos() {
     const [responsavel, setResponsavel] = useState("");
     const [sexo, setSexo] = useState("");
     const [observacoes, setObservacoes] = useState("");
+    // Guarda os dados de endereço do aluno
+    const [endereco, setEndereco] = useState("");
+    const [bairro, setBairro] = useState("");
+    const [cidade, setCidade] = useState("");
 
     // Guarda o ID do aluno que está sendo editado
     const [alunoEditando, setAlunoEditando] = useState(null);
@@ -23,11 +36,16 @@ function Alunos() {
     useEffect(() => {
         async function carregarDados() {
             try {
+                // Busca os dados cadastrados
                 const dadosAlunos = await apiRequest("/alunos/");
                 setAlunos(dadosAlunos);
-
+                // Busca os responsáveis cadastrados
                 const dadosResponsaveis = await apiRequest("/responsaveis/");
                 setResponsaveis(dadosResponsaveis);
+                // Busca os planos cadastrados
+                const dadosPlanos = await apiRequest("/planos/");
+                setPlanos(dadosPlanos);
+                
             } catch (erro) {
                 console.error("Erro ao carregar dados:", erro);
                 alert("Não foi possível carregar os dados.");
@@ -47,10 +65,17 @@ function Alunos() {
         }
 
         // Organiza os dados conforme o formato esperado pela API
-        const dadosAluno = {
+            // Organiza os dados conforme o formato esperado pela API
+            const dadosAluno = {
             nome: nome,
             data_nascimento: nascimento || null,
             sexo: sexo || null,
+
+            // Dados de endereço do aluno
+            endereco: endereco || null,
+            bairro: bairro || null,
+            cidade: cidade || null,
+
             observacoes: observacoes || null,
             id_responsavel: responsavel ? Number(responsavel) : null
         };
@@ -64,12 +89,81 @@ function Alunos() {
 
                 alert("Aluno atualizado com sucesso!");
             } else {
-                await apiRequest("/alunos/", {
+
+                // Envia os dados do novo aluno para o FastAPI
+                const alunoCriado = await apiRequest("/alunos/", {
                     method: "POST",
-                    body: JSON.stringify(dadosAluno)
+                     body: JSON.stringify(dadosAluno)
                 });
 
+                // Mostra os dados retornados pela API
+                console.log("Aluno cadastrado:", alunoCriado);
+
+                // Guarda o identificador gerado pelo MySQL
+                const idAlunoCriado = alunoCriado.id_aluno;
+
+                // Confirma que a API retornou um identificador
+                if (!idAlunoCriado) {
+                    alert("Aluno cadastrado, mas a API não retornou seu identificador.");
+                    return;
+                }
+
                 alert("Aluno cadastrado com sucesso!");
+            }
+
+            // Cdasttra um contrato para um aluno já existente
+            async function cadastrarContrato(idAluno) {
+
+                // Verifica se um plano foi selecionado
+                if (!planoSelecionado){
+                    alert("Selecione um plano para realizar a matrícula.");
+                    return;
+                }
+
+                // Verifica se a data de início foi preenchida
+                if (!dataInicioContrato) {
+                    alert("Informe a data de início do contrato.");
+                    return;
+                }
+                // Verifica se o valor mensal foi informado corretamente
+                if (
+                    valorMensal === "" ||
+                    !Number.isFinite(Number(valorMensal)) ||
+                    Number(valorMensal) < 0
+                ){
+                    alert("Informe um valor mensal válido.");
+                    return;
+                }
+
+                // Organiza os dados esperados pelo FastAPI
+                const dadosContrato = {
+                    id_aluno: Number(idAluno),
+                    id_plano: Number(planoSelecionado),
+                    data_inicio: dataInicioContrato,
+                    valor_mensal: Number(valorMensal).toFixed(2)
+                };
+
+                try {
+                    // Envia os dados para a API
+                    const contratoCriado = await apiRequest("/contratos/", {
+                        method: "POST",
+                        body: JSON.stringify(dadosContrato)
+                    });
+
+                    // Exibe o resultado no Console para conferência
+                    console.log("Contrato criado:", contratoCriado);
+
+                    alert("Contrato cadastrado com sucesso!");
+
+                    return contratoCriado;
+
+                } catch (erro) {
+                    console.error("Erro ao cadastrar contrato:", erro);
+                    alert(erro.message || "Não foi possível cadastrar o contrato.");
+
+                    return null;
+                }
+
             }
 
             // Atualiza a lista após salvar
@@ -91,6 +185,9 @@ function Alunos() {
         setResponsavel("");
         setSexo("");
         setObservacoes("");
+        setEndereco("");
+        setBairro("");
+        setCidade("");
         setAlunoEditando(null);
     }
 
@@ -101,6 +198,9 @@ function Alunos() {
         setResponsavel(aluno.id_responsavel?.toString() || "");
         setSexo(aluno.sexo || "");
         setObservacoes(aluno.observacoes || "");
+        setEndereco(aluno.endereco || "");
+        setBairro(aluno.bairro || "");
+        setCidade(aluno.cidade || "");
         setAlunoEditando(aluno.id_aluno);
     }
 
@@ -172,6 +272,39 @@ function Alunos() {
                     </div>
 
                     <div className="campo">
+                        <label htmlFor="endereco">Endereço</label>
+                        <input
+                            id="endereco"
+                            type="text"
+                            value={endereco}
+                            onChange={(evento) => setEndereco(evento.target.value)}
+                            placeholder="Digite a rua e o número"
+                        />
+                    </div>
+
+                    <div className="campo">
+                        <label htmlFor="bairro">Bairro</label>
+                        <input
+                            id="bairro"
+                            type="text"
+                            value={bairro}
+                            onChange={(evento) => setBairro(evento.target.value)}
+                            placeholder="Digite o bairro"
+                        />
+                    </div>
+
+                    <div className="campo">
+                    <label htmlFor="cidade">Cidade</label>
+                    <input
+                        id="cidade"
+                        type="text"
+                        value={cidade}
+                        onChange={(evento) => setCidade(evento.target.value)}
+                        placeholder="Digite a cidade"
+                        />
+                    </div>
+
+                    <div className="campo">
                         <label htmlFor="responsavel">Responsável</label>
                         <select
                             id="responsavel"
@@ -214,6 +347,67 @@ function Alunos() {
                             placeholder="Informações adicionais sobre o aluno"
                         />
                     </div>
+
+                    {/* Seleção do plano para matrícula */}
+<div className="campo">
+    <label htmlFor="plano">Planos</label>
+
+    <select
+        id="plano"
+        value={planoSelecionado}
+        onChange={(evento) =>
+            setPlanoSelecionado(evento.target.value)
+        }
+    >
+        <option value="">Selecione um plano</option>
+
+        {planos
+            .filter((plano) => plano.ativo === true)
+            .map((plano) => (
+                <option
+                    key={plano.id_plano}
+                    value={plano.id_plano}
+                >
+                    {plano.nome} - {plano.aulas_por_semana} aula(s) por semana
+                </option>
+            ))}
+    </select>
+</div>
+
+{/* Data de início do contrato */}
+<div className="campo">
+    <label htmlFor="dataInicioContrato">
+        Data de início do contrato
+    </label>
+
+    <input
+        id="dataInicioContrato"
+        type="date"
+        value={dataInicioContrato}
+        onChange={(evento) =>
+            setDataInicioContrato(evento.target.value)
+        }
+    />
+</div>
+
+{/* Valor mensal do contrato */}
+<div className="campo">
+    <label htmlFor="valorMensal">
+        Valor mensal (R$)
+    </label>
+
+    <input
+        id="valorMensal"
+        type="number"
+        min="0"
+        step="0.01"
+        value={valorMensal}
+        onChange={(evento) =>
+            setValorMensal(evento.target.value)
+        }
+        placeholder="Ex.: 150.00"
+    />
+</div>
 
                     <div className="acoes-formulario">
                         <button type="submit">
