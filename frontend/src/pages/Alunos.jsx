@@ -6,6 +6,7 @@ function Alunos() {
     const [alunos, setAlunos] = useState([]);
     const [responsaveis, setResponsaveis] = useState([]);
     const [planos, setPlanos] = useState([]);
+    const [aulas, setAulas] = useState([]);
 
     // Dados pessoais do aluno
     const [nome, setNome] = useState("");
@@ -23,6 +24,7 @@ function Alunos() {
     const [planoSelecionado, setPlanoSelecionado] = useState("");
     const [dataInicioContrato, setDataInicioContrato] = useState("");
     const [valorMensal, setValorMensal] = useState("");
+    const [aulasSelecionadas, setAulasSelecionadas] = useState([]);
 
     // Carrega alunos, responsáveis e planos ao abrir a página
     useEffect(() => {
@@ -36,6 +38,12 @@ function Alunos() {
 
                 const dadosPlanos = await apiRequest("/planos/");
                 setPlanos(dadosPlanos);
+
+                // Busca as aulas cadastradas no backend
+                const dadosAulas = await apiRequest("/aulas/");
+                setAulas(dadosAulas);
+
+                console.log("Aulas carregadas:", dadosAulas);
             } catch (erro) {
                 console.error("Erro ao carregar dados:", erro);
                 alert("Não foi possível carregar os dados.");
@@ -60,6 +68,8 @@ function Alunos() {
         setPlanoSelecionado("");
         setDataInicioContrato("");
         setValorMensal("");
+        setAulasSelecionadas([]); // Limpa os horários selecionados
+
     }
 
     // Preenche o formulário com os dados do aluno escolhido
@@ -73,6 +83,8 @@ function Alunos() {
         setBairro(aluno.bairro || "");
         setCidade(aluno.cidade || "");
         setAlunoEditando(aluno.id_aluno);
+        setAulasSelecionadas([]); // Impede que horários de uma matrícula anterior permaneçam selecionados
+
 
         // A edição de dados pessoais não deve criar contratos
         setRealizarMatricula(false);
@@ -461,6 +473,53 @@ async function cadastrarContrato(idAluno) {
                                     onChange={(evento) => setValorMensal(evento.target.value)}
                                     placeholder="Ex.: 150.00"
                                 />
+{/* Seleção dos horários semanais */}
+<div className="campo">
+    <label>Horários das aulas</label>
+
+    <p>Selecione os horários que o aluno frequentará.</p>
+
+    {aulas.map((aula) => (
+        <label
+            key={aula.id_aula}
+            style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+                marginBottom: "10px"
+            }}
+        >
+            <input
+                type="checkbox"
+                checked={aulasSelecionadas.includes(aula.id_aula)}
+                onChange={(evento) => {
+                    const idAula = aula.id_aula;
+
+                    if (evento.target.checked) {
+                        setAulasSelecionadas((anteriores) => [
+                            ...anteriores,
+                            idAula
+                        ]);
+                    } else {
+                        setAulasSelecionadas((anteriores) =>
+                            anteriores.filter((id) => id !== idAula)
+                        );
+                    }
+                }}
+                style={{
+                    width: "auto",
+                    margin: 0,
+                    flex: "none"
+                }}
+            />
+
+            {aula.descricao} — {aula.dia_semana} às{" "}
+            {aula.horario.slice(0, 5)}
+        </label>
+    ))}
+</div>
+
                             </div>
                            
                         </>
