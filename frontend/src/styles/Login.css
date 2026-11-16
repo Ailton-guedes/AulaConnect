@@ -1,0 +1,114 @@
+
+/* Página principal de login */
+.pagina-login {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #436de1, #85bcf7);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Painel central do formulário */
+.painel-login {
+    width: 100%;
+    max-width: 420px;
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+}
+
+/* Nome do sistema */
+.painel-login h1 {
+    color: #436de1;
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+/* Texto abaixo do título */
+.painel-login > p {
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Organização dos campos */
+.painel-login .campo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+/* Rótulos dos campos */
+.painel-login label {
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+/* Campos de e-mail e senha */
+.painel-login input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+/* Destaque quando o campo recebe foco */
+.painel-login input:focus {
+    border-color: #436de1;
+    box-shadow: 0 0 0 3px rgba(67, 109, 225, 0.15);
+}
+
+/* Botão de entrar */
+.painel-login button {
+    width: 100%;
+    padding: 13px;
+    background-color: #436de1;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Efeito ao passar o mouse */
+.painel-login button:hover:not(:disabled) {
+    background-color: #3156bc;
+}
+
+/* Botão durante o carregamento */
+.painel-login button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Mensagem de erro no login */
+.painel-login .erro-login {
+    color: #b91c1c;
+    background-color: #fef2f2;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* Ajuste para celulares */
+@media (max-width: 480px) {
+    .painel-login {
+        padding: 28px 22px;
+    }
+
+    .painel-login h1 {
+        font-size: 28px;
+    }
+}

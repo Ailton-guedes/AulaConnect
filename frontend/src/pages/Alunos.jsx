@@ -7,6 +7,8 @@ function Alunos() {
     const [responsaveis, setResponsaveis] = useState([]);
     const [planos, setPlanos] = useState([]);
     const [aulas, setAulas] = useState([]);
+    const [professores, setProfessores] = useState([]);
+    const [professorSelecionado, setProfessorSelecionado] = useState("");
 
     // Dados pessoais do aluno
     const [nome, setNome] = useState("");
@@ -39,6 +41,17 @@ function Alunos() {
                 const dadosPlanos = await apiRequest("/planos/");
                 setPlanos(dadosPlanos);
 
+                // Busca os usuários cadastrados
+                const dadosUsuarios = await apiRequest("/usuarios/");
+
+                // Mantém somente usuários com perfil de professor
+                const listaProfessores = dadosUsuarios.filter(
+                    (usuario) =>
+                         usuario.tipo_usuario?.trim().toUpperCase() === "PROFESSOR"
+            );
+
+            setProfessores(listaProfessores);
+
                 // Busca as aulas cadastradas no backend
                 const dadosAulas = await apiRequest("/aulas/");
                 setAulas(dadosAulas);
@@ -69,7 +82,7 @@ function Alunos() {
         setDataInicioContrato("");
         setValorMensal("");
         setAulasSelecionadas([]); // Limpa os horários selecionados
-
+        setProfessorSelecionado("");
     }
 
     // Preenche o formulário com os dados do aluno escolhido
@@ -84,7 +97,7 @@ function Alunos() {
         setCidade(aluno.cidade || "");
         setAlunoEditando(aluno.id_aluno);
         setAulasSelecionadas([]); // Impede que horários de uma matrícula anterior permaneçam selecionados
-
+        setProfessorSelecionado("");
 
         // A edição de dados pessoais não deve criar contratos
         setRealizarMatricula(false);

@@ -1,41 +1,104 @@
-import { Routes, Route } from 'react-router-dom'
 
-import MenuLateral from './components/MenuLateral'
-import Cabecalho from './components/Cabecalho'
-import Alunos from './pages/Alunos'
-import Aulas from './pages/Aulas'
-import Agendamentos from './pages/Agendamentos'
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-import Inicio from './pages/Inicio'
-import Responsaveis from './pages/Responsaveis'
-import Frequencia from './pages/Frequencia'
+// Componentes do layout
+import MenuLateral from "./components/MenuLateral";
+import Cabecalho from "./components/Cabecalho";
 
-function App() {
-  return (
-    <div className='app'>
+// Páginas do sistema
+import Login from "./pages/Login";
+import Inicio from "./pages/Inicio";
+import Alunos from "./pages/Alunos";
+import Responsaveis from "./pages/Responsaveis";
+import Aulas from "./pages/Aulas";
+import Agendamentos from "./pages/Agendamentos";
+import Frequencia from "./pages/Frequencia";
 
-      {/* Menu lateral */}
-      <MenuLateral />
-      {/* Menu lateral */}
-      <main className='conteudo-principal'>
 
-        {/* Cabeçalho */}
-        <Cabecalho />
+// Verifica se existe um token JWT
+function RotaProtegida() {
 
-        {/* Área onde as páginas serão exibidas */}
-        <Routes>
-          <Route path="/" element={<Inicio/>} />  {/* Página inicial */}
-          <Route path= "/alunos" element={<Alunos />} /> {/* Página de alunos */}
-          <Route path="/responsaveis" element={<Responsaveis />} /> {/* Página de responsáveis */}
-          <Route path="/aulas" element={<Aulas />} />
-          <Route path="/agendamentos" element={<Agendamentos />} /> {/* Página de agendamentos */}     
-          <Route path="/frequencia" element={<Frequencia />} /> {/* Página de controle de frequência */}
+    const token = sessionStorage.getItem("access_token");
 
-        </Routes>
+    // Sem token, redireciona para o login
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
 
-      </main>
-    </div>
-  )
+    // Com token, permite acessar as páginas
+    return <Outlet />;
 }
 
-export default App
+
+// Layout das páginas internas
+function LayoutSistema() {
+
+    return (
+        <div className="app">
+
+            {/* Menu lateral */}
+            <MenuLateral />
+
+            {/* Conteúdo principal */}
+            <main className="conteudo-principal">
+
+                {/* Cabeçalho */}
+                <Cabecalho />
+
+                {/* Página selecionada */}
+                <Outlet />
+
+            </main>
+
+        </div>
+    );
+}
+
+
+// Componente principal
+function App() {
+
+    return (
+        <Routes>
+
+            {/* Página pública de login */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Páginas protegidas */}
+            <Route element={<RotaProtegida />}>
+
+                <Route element={<LayoutSistema />}>
+
+                    <Route path="/" element={<Inicio />} />
+
+                    <Route path="/alunos" element={<Alunos />} />
+
+                    <Route
+                        path="/responsaveis"
+                        element={<Responsaveis />}
+                    />
+
+                    <Route path="/aulas" element={<Aulas />} />
+
+                    <Route
+                        path="/agendamentos"
+                        element={<Agendamentos />}
+                    />
+
+                    <Route
+                        path="/frequencia"
+                        element={<Frequencia />}
+                    />
+
+                </Route>
+
+            </Route>
+
+            {/* Redireciona rotas inexistentes */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+
+        </Routes>
+    );
+}
+
+export default App;
