@@ -33,6 +33,13 @@ class Contrato(Base):
         nullable=False
     )
 
+    # Professor responsável pelo contrato
+    id_professor = Column(
+    Integer,
+    ForeignKey("usuarios.id_usuario"),
+    nullable=True
+)
+
     # Data de início do contrato
     data_inicio = Column(Date, nullable=False)
 

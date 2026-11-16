@@ -6,7 +6,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from datetime import time
 
 
-# Dados necessários para cadastrar um horário do contrato
+# ==========================================================
+# DADOS PARA CADASTRAR UM HORÁRIO DO CONTRATO
+# ==========================================================
+
 class HorarioContratoCreate(BaseModel):
 
     # Identifica o contrato ao qual o horário pertence
@@ -21,8 +24,28 @@ class HorarioContratoCreate(BaseModel):
     # Horário em que a aula começará
     horario_inicio: time
 
+    # Duração da aula: entre 30 e 40 minutos
+    duracao_minutos: int = Field(
+        ge=30,
+        le=40,
+        description="Duração da aula entre 30 e 40 minutos"
+    )
 
-# Dados retornados pela API
+    # Intervalo de deslocamento após a aula
+    # Padrão de 30 minutos
+    deslocamento_minutos: int = Field(
+        default=30,
+        ge=20,
+        le=30,
+        multiple_of=5,
+        description="Deslocamento de 20, 25 ou 30 minutos"
+    )
+
+
+# ==========================================================
+# DADOS RETORNADOS PELA API
+# ==========================================================
+
 class HorarioContratoResponse(BaseModel):
 
     # Permite converter objetos SQLAlchemy em respostas
@@ -42,3 +65,10 @@ class HorarioContratoResponse(BaseModel):
 
     # Horário de início
     horario_inicio: time
+
+    # Duração da aula
+    # Aceita NULL dos horários antigos
+    duracao_minutos: int | None = None
+
+    # Intervalo de deslocamento
+    deslocamento_minutos: int

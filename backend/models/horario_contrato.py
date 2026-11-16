@@ -64,3 +64,17 @@ class HorarioContrato(Base):
         Time,
         nullable=False
     )
+
+    # Duração da aula em minutos
+    duracao_minutos = Column(
+        Integer,
+        nullable=True
+    )
+
+    # Intervalo reservado para deslocamento do professor
+    # O padrão é 30 minutos
+    deslocamento_minutos = Column(
+        Integer,
+        nullable=False,
+        server_default="30"
+    )

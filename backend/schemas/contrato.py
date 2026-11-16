@@ -25,6 +25,9 @@ class ContratoCreate(BaseModel):
     # Plano escolhido pelo responsável
     id_plano: int = Field(gt=0)
 
+    # Professor responsável pelas aulas do contrato
+    id_professor: int = Field(gt=0)
+
     # Data de início do contrato
     data_inicio: date
 
@@ -54,6 +57,8 @@ class ContratoResponse(BaseModel):
     id_aluno: int
 
     id_plano: int
+
+    id_professor: int | None = None
 
     data_inicio: date
 

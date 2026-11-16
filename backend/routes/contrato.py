@@ -19,10 +19,12 @@ from backend.models.horario_contrato import HorarioContrato
 
 # Importa os agendamentos das aulas
 from backend.models.agendamento import Agendamento
+
 # Importa os modelos do banco de dados
 from backend.models.aluno import Aluno
 from backend.models.plano import Plano
 from backend.models.contrato import Contrato
+from backend.models.usuario import Usuario
 
 # Importa os schemas de validação e resposta
 from backend.schemas.contrato import (
@@ -81,8 +83,37 @@ def cadastrar_contrato(
             detail="Este plano está desativado."
         )
 
+    # ======================================================
+    # VALIDAR PROFESSOR RESPONSÁVEL
+    # ======================================================
+
+    # Busca o professor informado no cadastro de usuários
+    professor = db.query(Usuario).filter(
+        Usuario.id_usuario == dados.id_professor
+    ).first()
+
+    # Verifica se o professor existe
+    if professor is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Professor não encontrado."
+        )
+
+    # Verifica se o usuário possui perfil de professor
+    if (
+        not professor.tipo_usuario
+        or professor.tipo_usuario.strip().upper() != "PROFESSOR"
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="O usuário informado não possui perfil de professor."
+        )
+
+    # ======================================================
+    # CALCULAR PERÍODO DO CONTRATO
+    # ======================================================
+
     # Calcula a data final com base na duração do plano
-    # Exemplo: 04/11/2026 + 6 meses = 04/05/2027
     nova_data_fim = dados.data_inicio + relativedelta(
         months=plano.duracao_meses
     )
@@ -103,10 +134,15 @@ def cadastrar_contrato(
             detail="O aluno já possui um contrato ativo neste período."
         )
 
-    # Cria o novo contrato
+    # ======================================================
+    # CRIAR CONTRATO
+    # ======================================================
+
+    # Cria o contrato vinculado ao aluno, plano e professor
     novo_contrato = Contrato(
         id_aluno=dados.id_aluno,
         id_plano=dados.id_plano,
+        id_professor=dados.id_professor,
         data_inicio=dados.data_inicio,
         data_fim=nova_data_fim,
         valor_mensal=dados.valor_mensal,
@@ -126,7 +162,10 @@ def cadastrar_contrato(
     # Retorna os dados do contrato cadastrado
     return novo_contrato
 
+
+# ==========================================================
 # LISTAR TODOS OS CONTRATOS
+# ==========================================================
 
 @router.get(
     "/",
@@ -143,7 +182,10 @@ def listar_contratos(
 
     return contratos
 
+
+# ==========================================================
 # CONSULTAR CONTRATOS DE UM ALUNO
+# ==========================================================
 
 @router.get(
     "/aluno/{id_aluno}",
@@ -176,7 +218,9 @@ def listar_contratos_aluno(
     return contratos
 
 
+# ==========================================================
 # CONSULTAR CONTRATO PELO ID
+# ==========================================================
 
 @router.get(
     "/{id_contrato}",
@@ -202,7 +246,10 @@ def buscar_contrato(
     # Retorna o contrato encontrado
     return contrato
 
+
+# ==========================================================
 # GERAR AGENDAMENTOS AUTOMÁTICOS DO CONTRATO
+# ==========================================================
 
 @router.post("/{id_contrato}/gerar-agendamentos")
 def gerar_agendamentos(
@@ -313,4 +360,3 @@ def gerar_agendamentos(
         "agendamentos_criados": quantidade_criada,
         "agendamentos_existentes": quantidade_existente
     }
-
