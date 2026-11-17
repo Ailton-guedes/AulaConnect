@@ -6,7 +6,6 @@ function Alunos() {
     const [alunos, setAlunos] = useState([]);
     const [responsaveis, setResponsaveis] = useState([]);
     const [planos, setPlanos] = useState([]);
-    const [aulas, setAulas] = useState([]);
     const [professores, setProfessores] = useState([]);
     const [professorSelecionado, setProfessorSelecionado] = useState("");
 
@@ -26,7 +25,12 @@ function Alunos() {
     const [planoSelecionado, setPlanoSelecionado] = useState("");
     const [dataInicioContrato, setDataInicioContrato] = useState("");
     const [valorMensal, setValorMensal] = useState("");
-    const [aulasSelecionadas, setAulasSelecionadas] = useState([]);
+    const [diaSemana, setDiaSemana] = useState("");     // Dia da semana escolhido para a aula (0 = segunda-feira)
+    const [horarioInicio, setHorarioInicio] = useState("");// Horário de início da aula
+    const [duracaoMinutos, setDuracaoMinutos] = useState("40");// Duração da aula em minutos
+    const [deslocamentoMinutos, setDeslocamentoMinutos] = useState("30");// Tempo de deslocamento após a aula
+    const [horariosContrato, setHorariosContrato] = useState([]);// Lista dos horários adicionados à matrícula
+
 
     // Carrega alunos, responsáveis e planos ao abrir a página
     useEffect(() => {
@@ -52,11 +56,6 @@ function Alunos() {
 
             setProfessores(listaProfessores);
 
-                // Busca as aulas cadastradas no backend
-                const dadosAulas = await apiRequest("/aulas/");
-                setAulas(dadosAulas);
-
-                console.log("Aulas carregadas:", dadosAulas);
             } catch (erro) {
                 console.error("Erro ao carregar dados:", erro);
                 alert("Não foi possível carregar os dados.");
@@ -81,9 +80,14 @@ function Alunos() {
         setPlanoSelecionado("");
         setDataInicioContrato("");
         setValorMensal("");
-        setAulasSelecionadas([]); // Limpa os horários selecionados
         setProfessorSelecionado("");
-    }
+        // Limpa os dados da agenda semanal
+        setDiaSemana("");
+        setHorarioInicio("");
+        setDuracaoMinutos("40");
+        setDeslocamentoMinutos("30");
+        setHorariosContrato([]);    
+        }
 
     // Preenche o formulário com os dados do aluno escolhido
     function editarAluno(aluno) {
@@ -96,7 +100,6 @@ function Alunos() {
         setBairro(aluno.bairro || "");
         setCidade(aluno.cidade || "");
         setAlunoEditando(aluno.id_aluno);
-        setAulasSelecionadas([]); // Impede que horários de uma matrícula anterior permaneçam selecionados
         setProfessorSelecionado("");
 
         // A edição de dados pessoais não deve criar contratos
@@ -105,6 +108,48 @@ function Alunos() {
         setDataInicioContrato("");
         setValorMensal("");
     }
+
+
+    // Adiciona um horário à lista da matrícula
+    function adicionarHorario() {
+
+        // Verifica se o dia e o horário foram informados
+        if (diaSemana === "" || !horarioInicio) {
+            alert("Selecione o dia e o horário da aula.");
+            return;
+        }
+
+        // Impede horários duplicados na mesma matrícula
+        const horarioDuplicado = horariosContrato.some(
+            (item) =>
+                item.dia_semana === Number(diaSemana) &&
+                item.horario_inicio === horarioInicio
+        );
+
+        if (horarioDuplicado) {
+            alert("Este horário já foi adicionado.");
+            return;
+        }
+
+        // Monta os dados do horário
+        const novoHorario = {
+            dia_semana: Number(diaSemana),
+            horario_inicio: horarioInicio,
+            duracao_minutos: Number(duracaoMinutos),
+            deslocamento_minutos: Number(deslocamentoMinutos)
+        };
+
+        // Adiciona o horário sem apagar os anteriores
+        setHorariosContrato((anteriores) => [
+            ...anteriores,
+            novoHorario
+        ]);
+
+        // Limpa os campos para adicionar outro horário
+        setDiaSemana("");
+        setHorarioInicio("");
+    }
+
 
     // Cadastra um aluno ou atualiza seus dados pessoais
 async function cadastrarAluno(evento) {
@@ -124,6 +169,16 @@ async function cadastrarAluno(evento) {
             alert("Selecione um plano para realizar a matrícula.");
             return;
         }
+        // Verifica se um professor foi selecionado
+        if (
+            !professorSelecionado ||
+            !Number.isInteger(Number(professorSelecionado)) ||
+            Number(professorSelecionado) <= 0
+        ) {
+            alert(
+                "Selecione um professor responsável pela matrícula.");
+                return;
+    }
 
         // Verifica se a data de início foi preenchida
         if (!dataInicioContrato) {
@@ -267,6 +322,7 @@ async function cadastrarContrato(idAluno) {
     const dadosContrato = {
         id_aluno: Number(idAluno),
         id_plano: Number(planoSelecionado),
+        id_professor: Number(professorSelecionado),
         data_inicio: dataInicioContrato,
         valor_mensal: Number(valorMensal).toFixed(2)
     };
@@ -289,7 +345,7 @@ async function cadastrarContrato(idAluno) {
 
     return contratoCriado;
 }
-
+    
     // Exclui um aluno após confirmação
     async function excluirAluno(id) {
         if (!window.confirm("Tem certeza que deseja excluir este aluno?")) {
@@ -465,6 +521,37 @@ async function cadastrarContrato(idAluno) {
                                 </select>
                             </div>
 
+
+{/* Seleção do professor responsável pelo contrato */}
+<div className="campo">
+    <label htmlFor="professor">
+        Professor responsável
+    </label>
+
+    <select
+        id="professor"
+        value={professorSelecionado}
+        onChange={(evento) =>
+            setProfessorSelecionado(evento.target.value)
+        }
+        required={realizarMatricula}
+    >
+        <option value="">
+            Selecione um professor
+        </option>
+
+        {professores.map((professor) => (
+            <option
+                key={professor.id_usuario}
+                value={professor.id_usuario}
+            >
+                {professor.nome}
+            </option>
+        ))}
+    </select>
+</div>
+
+
                             <div className="campo">
                                 <label htmlFor="dataInicioContrato">Data de início do contrato</label>
                                 <input
@@ -486,55 +573,130 @@ async function cadastrarContrato(idAluno) {
                                     onChange={(evento) => setValorMensal(evento.target.value)}
                                     placeholder="Ex.: 150.00"
                                 />
-{/* Seleção dos horários semanais */}
+                                </div>
+
+
+{/* Configuração da agenda semanal do aluno */}
 <div className="campo">
-    <label>Horários das aulas</label>
+    <h3>Agenda semanal do aluno</h3>
 
-    <p>Selecione os horários que o aluno frequentará.</p>
-
-    {aulas.map((aula) => (
-        <label
-            key={aula.id_aula}
-            style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-                marginBottom: "10px"
-            }}
-        >
-            <input
-                type="checkbox"
-                checked={aulasSelecionadas.includes(aula.id_aula)}
-                onChange={(evento) => {
-                    const idAula = aula.id_aula;
-
-                    if (evento.target.checked) {
-                        setAulasSelecionadas((anteriores) => [
-                            ...anteriores,
-                            idAula
-                        ]);
-                    } else {
-                        setAulasSelecionadas((anteriores) =>
-                            anteriores.filter((id) => id !== idAula)
-                        );
-                    }
-                }}
-                style={{
-                    width: "auto",
-                    margin: 0,
-                    flex: "none"
-                }}
-            />
-
-            {aula.descricao} — {aula.dia_semana} às{" "}
-            {aula.horario.slice(0, 5)}
-        </label>
-    ))}
+    <label htmlFor="diaSemana">Dia da semana</label>
+    <select
+        id="diaSemana"
+        value={diaSemana}
+        onChange={(evento) => setDiaSemana(evento.target.value)}
+    >
+        <option value="">Selecione o dia</option>
+        <option value="0">Segunda-feira</option>
+        <option value="1">Terça-feira</option>
+        <option value="2">Quarta-feira</option>
+        <option value="3">Quinta-feira</option>
+        <option value="4">Sexta-feira</option>
+        <option value="5">Sábado</option>
+    </select>
 </div>
 
-                            </div>
-                           
+<div className="campo">
+    <label htmlFor="horarioInicio">Horário de início</label>
+    <input
+        id="horarioInicio"
+        type="time"
+        value={horarioInicio}
+        onChange={(evento) => setHorarioInicio(evento.target.value)}
+    />
+</div>
+
+<div className="campo">
+    <label htmlFor="duracaoMinutos">Duração da aula</label>
+    <select
+        id="duracaoMinutos"
+        value={duracaoMinutos}
+        onChange={(evento) => setDuracaoMinutos(evento.target.value)}
+    >
+        <option value="30">30 minutos</option>
+        <option value="35">35 minutos</option>
+        <option value="40">40 minutos</option>
+    </select>
+</div>
+
+<div className="campo">
+    <label htmlFor="deslocamentoMinutos">
+        Tempo de deslocamento
+    </label>
+    <select
+        id="deslocamentoMinutos"
+        value={deslocamentoMinutos}
+        onChange={(evento) =>
+            setDeslocamentoMinutos(evento.target.value)
+        }
+    >
+        <option value="20">20 minutos</option>
+        <option value="25">25 minutos</option>
+        <option value="30">30 minutos</option>
+    </select>
+</div>
+
+<div className="campo">
+    <button
+        type="button"
+        onClick={adicionarHorario}
+    >
+        Adicionar horário
+    </button>
+</div>
+
+
+{/* Lista dos horários adicionados à matrícula */}
+{horariosContrato.length > 0 && (
+    <div className="campo">
+        <h4>Horários adicionados</h4>
+
+        {horariosContrato.map((horario, indice) => (
+            <div
+                key={`${horario.dia_semana}-${horario.horario_inicio}`}
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    marginBottom: "10px"
+                }}
+            >
+                <span>
+                    {[
+                        "Segunda-feira",
+                        "Terça-feira",
+                        "Quarta-feira",
+                        "Quinta-feira",
+                        "Sexta-feira",
+                        "Sábado",
+                        "Domingo"
+                    ][horario.dia_semana]}
+                    {" — "}
+                    {horario.horario_inicio}
+                    {" — "}
+                    {horario.duracao_minutos} min de aula
+                    {" + "}
+                    {horario.deslocamento_minutos} min de deslocamento
+                </span>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setHorariosContrato((anteriores) =>
+                            anteriores.filter((_, i) => i !== indice)
+                        );
+                    }}
+                >
+                    Remover
+                </button>
+            </div>
+        ))}
+    </div>
+)}
+
+
+
                         </>
                     )}
 
