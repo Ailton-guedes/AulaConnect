@@ -518,11 +518,19 @@ async function cadastrarContrato(idAluno) {
                 setObservacoes={setObservacoes}
             />
 
-{/* Horários vinculados ao contrato do aluno */}
+
+{/* Horários vinculados ao contrato ativo do aluno */}
 <div className="campo">
     {contratoEditando ? (
         <EditarHorariosAluno
+
+            // Identifica o contrato para consultar os horários
             idContrato={contratoEditando.id_contrato}
+
+            // Identifica o plano para consultar
+            // a quantidade de aulas semanais
+            idPlano={contratoEditando.id_plano}
+
         />
     ) : (
         <p>
@@ -530,6 +538,7 @@ async function cadastrarContrato(idAluno) {
         </p>
     )}
 </div>
+
 
             <div className="acoes-formulario">
                 <button type="submit">

@@ -43,6 +43,34 @@ class HorarioContratoCreate(BaseModel):
 
 
 # ==========================================================
+# DADOS PARA ATUALIZAR UM HORÁRIO EXISTENTE
+# ==========================================================
+
+class HorarioContratoUpdate(BaseModel):
+
+    # Novo dia da semana
+    dia_semana: int = Field(ge=0, le=6)
+
+    # Novo horário de início da aula
+    horario_inicio: time
+
+    # Nova duração da aula
+    duracao_minutos: int = Field(
+        ge=30,
+        le=40,
+        description="Duração da aula entre 30 e 40 minutos"
+    )
+
+    # Novo tempo de deslocamento
+    deslocamento_minutos: int = Field(
+        ge=20,
+        le=30,
+        multiple_of=5,
+        description="Deslocamento de 20, 25 ou 30 minutos"
+    )
+
+
+# ==========================================================
 # DADOS RETORNADOS PELA API
 # ==========================================================
 

@@ -23,6 +23,7 @@ from backend.models.plano import Plano
 # Importa os schemas de validação
 from backend.schemas.horario_contrato import (
     HorarioContratoCreate,
+    HorarioContratoUpdate,
     HorarioContratoResponse
 )
 
@@ -380,3 +381,215 @@ def listar_horarios_por_contrato(
         HorarioContrato.dia_semana,
         HorarioContrato.horario_inicio
     ).all()
+
+
+# ==========================================================
+# ATUALIZAR HORÁRIO SEMANAL DO CONTRATO
+# ==========================================================
+
+@router.put(
+    "/{id_horario}",
+    response_model=HorarioContratoResponse
+)
+def atualizar_horario(
+    id_horario: int,
+    dados: HorarioContratoUpdate,
+    db: Session = Depends(get_db)
+):
+
+    # Busca o horário que será atualizado
+    horario = db.query(HorarioContrato).filter(
+        HorarioContrato.id_horario == id_horario
+    ).first()
+
+    if horario is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Horário não encontrado."
+        )
+
+    # Busca o contrato vinculado ao horário
+    contrato = db.query(Contrato).filter(
+        Contrato.id_contrato == horario.id_contrato
+    ).first()
+
+    if contrato is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Contrato não encontrado."
+        )
+
+    # Somente contratos ativos podem ter horários alterados
+    if contrato.status != "ativo":
+        raise HTTPException(
+            status_code=400,
+            detail="O contrato não está ativo."
+        )
+
+    if contrato.id_professor is None:
+        raise HTTPException(
+            status_code=400,
+            detail="O contrato não possui professor responsável."
+        )
+
+    # ======================================================
+    # VALIDAR AULA VINCULADA
+    # ======================================================
+
+    if horario.id_aula is not None:
+
+        aula = db.query(Aula).filter(
+            Aula.id_aula == horario.id_aula
+        ).first()
+
+        if aula is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Aula vinculada não encontrada."
+            )
+
+        dias_semana = {
+            0: "segunda-feira",
+            1: "terca-feira",
+            2: "quarta-feira",
+            3: "quinta-feira",
+            4: "sexta-feira",
+            5: "sabado",
+            6: "domingo"
+        }
+
+        # Confere o dia da aula vinculada
+        if normalizar_texto(aula.dia_semana) != dias_semana[dados.dia_semana]:
+            raise HTTPException(
+                status_code=400,
+                detail="O dia não corresponde à aula vinculada."
+            )
+
+        # Confere o horário da aula vinculada
+        if aula.horario != dados.horario_inicio:
+            raise HTTPException(
+                status_code=400,
+                detail="O horário não corresponde à aula vinculada."
+            )
+
+    # ======================================================
+    # CALCULAR O NOVO PERÍODO RESERVADO
+    # ======================================================
+
+    inicio_novo = minutos_do_dia(dados.horario_inicio)
+
+    fim_novo = (
+        inicio_novo
+        + dados.duracao_minutos
+        + dados.deslocamento_minutos
+    )
+
+    if fim_novo > 24 * 60:
+        raise HTTPException(
+            status_code=400,
+            detail="A aula e o deslocamento ultrapassam o fim do dia."
+        )
+
+    # ======================================================
+    # VERIFICAR HORÁRIO REPETIDO NO MESMO CONTRATO
+    # ======================================================
+
+    horario_repetido = db.query(HorarioContrato).filter(
+        HorarioContrato.id_contrato == contrato.id_contrato,
+        HorarioContrato.id_horario != id_horario,
+        HorarioContrato.dia_semana == dados.dia_semana,
+        HorarioContrato.horario_inicio == dados.horario_inicio
+    ).first()
+
+    if horario_repetido is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Este horário já está cadastrado no contrato."
+        )
+
+    # ======================================================
+    # CONSULTAR HORÁRIOS DO PROFESSOR
+    # ======================================================
+
+    horarios_professor = (
+        db.query(HorarioContrato, Contrato, Aula)
+        .join(
+            Contrato,
+            HorarioContrato.id_contrato == Contrato.id_contrato
+        )
+        .outerjoin(
+            Aula,
+            HorarioContrato.id_aula == Aula.id_aula
+        )
+        .filter(
+            Contrato.id_professor == contrato.id_professor,
+            Contrato.status == "ativo",
+            Contrato.data_inicio < contrato.data_fim,
+            Contrato.data_fim > contrato.data_inicio,
+            HorarioContrato.dia_semana == dados.dia_semana,
+            HorarioContrato.id_horario != id_horario
+        )
+        .all()
+    )
+
+    # ======================================================
+    # VERIFICAR CONFLITOS DE AULA E DESLOCAMENTO
+    # ======================================================
+
+    for horario_existente, contrato_existente, aula_existente in horarios_professor:
+
+        duracao_existente = obter_duracao(
+            horario_existente,
+            aula_existente
+        )
+
+        deslocamento_existente = (
+            horario_existente.deslocamento_minutos
+            if horario_existente.deslocamento_minutos is not None
+            else 30
+        )
+
+        inicio_existente = minutos_do_dia(
+            horario_existente.horario_inicio
+        )
+
+        fim_existente = (
+            inicio_existente
+            + duracao_existente
+            + deslocamento_existente
+        )
+
+        if periodos_sobrepostos(
+            inicio_novo,
+            fim_novo,
+            inicio_existente,
+            fim_existente
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Conflito na agenda do professor. "
+                    f"O contrato {contrato_existente.id_contrato} "
+                    "já possui uma aula ou deslocamento nesse período."
+                )
+            )
+
+    # ======================================================
+    # SALVAR AS ALTERAÇÕES
+    # ======================================================
+
+    horario.dia_semana = dados.dia_semana
+    horario.horario_inicio = dados.horario_inicio
+    horario.duracao_minutos = dados.duracao_minutos
+    horario.deslocamento_minutos = dados.deslocamento_minutos
+
+    try:
+        db.commit()
+        db.refresh(horario)
+
+    except Exception:
+        db.rollback()
+        raise
+
+    return horario
+
