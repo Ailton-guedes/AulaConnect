@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import apiRequest from "../services/api";
+// Importa o componente responsável pela edição dos alunos
+import EditarAluno from "../components/alunos/EditarAluno";
+import EditarHorariosAluno from "../components/alunos/EditarHorariosAluno";
 
 function Alunos() {
     // Dados carregados do backend
@@ -21,6 +24,7 @@ function Alunos() {
 
     // Controle de edição e matrícula
     const [alunoEditando, setAlunoEditando] = useState(null);
+    const [contratoEditando, setContratoEditando] = useState(null);
     const [realizarMatricula, setRealizarMatricula] = useState(false);
     const [planoSelecionado, setPlanoSelecionado] = useState("");
     const [dataInicioContrato, setDataInicioContrato] = useState("");
@@ -76,6 +80,7 @@ function Alunos() {
         setBairro("");
         setCidade("");
         setAlunoEditando(null);
+        setContratoEditando(null);
         setRealizarMatricula(false);
         setPlanoSelecionado("");
         setDataInicioContrato("");
@@ -89,8 +94,36 @@ function Alunos() {
         setHorariosContrato([]);    
         }
 
-    // Preenche o formulário com os dados do aluno escolhido
+
+// Busca o contrato ativo do aluno selecionado
+async function buscarContratoAluno(idAluno) {
+    try {
+        // Consulta os contratos vinculados ao aluno
+        const contratos = await apiRequest(
+            `/contratos/aluno/${idAluno}`
+        );
+
+        // Localiza o contrato que está ativo
+        const contratoAtivo = contratos.find(
+            (contrato) => contrato.status === "ativo"
+        );
+        // Mostra no console o contrato encontrado
+        console.log("Contrato ativo encontrado:", contratoAtivo);
+        // Guarda o contrato encontrado
+        setContratoEditando(contratoAtivo || null);
+
+    } catch (erro) {
+        console.error("Erro ao buscar contrato:", erro);
+        setContratoEditando(null);
+    }
+}
+
+
+    
+    // Preenche os dados e ativa a edição do aluno
     function editarAluno(aluno) {
+
+        // Carrega os dados pessoais do aluno
         setNome(aluno.nome);
         setNascimento(aluno.data_nascimento || "");
         setResponsavel(aluno.id_responsavel?.toString() || "");
@@ -99,15 +132,24 @@ function Alunos() {
         setEndereco(aluno.endereco || "");
         setBairro(aluno.bairro || "");
         setCidade(aluno.cidade || "");
-        setAlunoEditando(aluno.id_aluno);
-        setProfessorSelecionado("");
 
-        // A edição de dados pessoais não deve criar contratos
+        // Informa ao React qual aluno está sendo editado
+        setAlunoEditando(aluno.id_aluno);
+
+        // Limpa o contrato anterior
+        setContratoEditando(null);
+
+        // Busca o contrato ativo do aluno selecionado
+        buscarContratoAluno(aluno.id_aluno);
+
+        // Limpa os dados utilizados na matrícula
+        setProfessorSelecionado("");
         setRealizarMatricula(false);
         setPlanoSelecionado("");
         setDataInicioContrato("");
         setValorMensal("");
     }
+
 
 
     // Adiciona um horário à lista da matrícula
@@ -195,6 +237,37 @@ async function cadastrarAluno(evento) {
             alert("Informe um valor mensal válido.");
             return;
         }
+
+        // Localiza o plano selecionado pelo usuário
+        const planoEscolhido = planos.find(
+            (plano) => plano.id_plano === Number(planoSelecionado)
+        );
+
+        // Confirma que o plano existe e possui frequência válida
+        if (
+            !planoEscolhido ||
+            !Number.isInteger(Number(planoEscolhido.aulas_por_semana)) ||
+            Number(planoEscolhido.aulas_por_semana) <= 0
+        ) {
+            alert("O plano selecionado não possui uma frequência semanal válida.");
+            return;
+        }
+
+        // Recupera a quantidade de aulas semanais do plano
+        const quantidadePermitida = Number(
+            planoEscolhido.aulas_por_semana
+        );
+
+        // Verifica se a quantidade de horários está correta
+        if (horariosContrato.length !== quantidadePermitida) {
+            alert(
+                `O plano selecionado exige ${quantidadePermitida} ` +
+                `horário(s) por semana. Você adicionou ${horariosContrato.length}.`
+            );
+            return;
+        }
+
+
     }
 
 
@@ -244,28 +317,40 @@ async function cadastrarAluno(evento) {
         // Cria o contrato somente se a matrícula foi selecionada
         if (realizarMatricula) {
 
-            try {
-                await cadastrarContrato(idAlunoCriado);
+            try  {
+                // Primeiro cria o contrato e recebe seu identificador
+                const contratoCriado = await cadastrarContrato(idAlunoCriado);
 
-                alert("Aluno cadastrado e contrato criado com sucesso!");
+                // Depois vincula os horários semanais ao contrato criado
+                await cadastrarHorariosContrato(contratoCriado.id_contrato);
+
+                // Só informa sucesso após salvar todos os horários
+                alert("Aluno, contrato e horários cadastrados com sucesso!");
 
             } catch (erroContrato) {
 
-                console.error(
-                    "Aluno cadastrado, mas houve erro ao criar contrato:",
-                    erroContrato
-                );
+                
+    // Registra o erro para facilitar a identificação
+    console.error(
+        "Erro durante a criação do contrato ou dos horários:",
+        erroContrato
+    );
 
-                alert(
-                    "O aluno foi cadastrado, mas o contrato não foi criado. " +
-                    "Verifique o cadastro antes de tentar novamente."
-                );
+    // A operação pode ter sido concluída parcialmente
+    alert(
+        "O aluno foi cadastrado, mas não foi possível concluir " +
+        "toda a matrícula. O contrato e alguns horários podem " +
+        "ter sido salvos. Verifique os registros antes de tentar novamente."
+    );
 
-                // Evita repetir o cadastro do aluno
-                const dadosAtualizados = await apiRequest("/alunos/");
-                setAlunos(dadosAtualizados);
-                limparFormulario();
-                return;
+    // Atualiza a lista de alunos cadastrados
+    const dadosAtualizados = await apiRequest("/alunos/");
+    setAlunos(dadosAtualizados);
+
+    // Limpa o formulário para evitar novo envio acidental
+    limparFormulario();
+    return;
+
             }
 
         } else {
@@ -346,6 +431,36 @@ async function cadastrarContrato(idAluno) {
     return contratoCriado;
 }
     
+    // Salva os horários semanais vinculados ao contrato
+    async function cadastrarHorariosContrato(idContrato) {
+
+        // Confirma que o contrato possui um ID válido
+        if (!idContrato || Number(idContrato) <= 0) {
+            throw new Error("Identificador do contrato inválido.");
+        }
+
+        // Percorre os horários adicionados no formulário
+        for (const horario of horariosContrato) {
+
+            // Monta os dados exigidos pelo FastAPI
+            const dadosHorario = {
+                id_contrato: Number(idContrato),
+                id_aula: null,
+                dia_semana: horario.dia_semana,
+                horario_inicio: horario.horario_inicio,
+                duracao_minutos: horario.duracao_minutos,
+                deslocamento_minutos: horario.deslocamento_minutos
+            };
+
+            // Envia cada horário para o backend
+            await apiRequest("/horarios-contrato/", {
+                method: "POST",
+                body: JSON.stringify(dadosHorario)
+            });
+        }
+    }
+    
+
     // Exclui um aluno após confirmação
     async function excluirAluno(id) {
         if (!window.confirm("Tem certeza que deseja excluir este aluno?")) {
@@ -374,6 +489,64 @@ async function cadastrarContrato(idAluno) {
                 <h2>Gerenciamento de Alunos</h2>
                 <p>Cadastre e gerencie os alunos do sistema.</p>
             </div>
+
+            {alunoEditando !== null ? (
+    <div className="painel-pagina">
+        <h3>Editar aluno</h3>
+
+        <form
+            className="formulario-pagina"
+            onSubmit={cadastrarAluno}
+        >
+            <EditarAluno
+                nome={nome}
+                setNome={setNome}
+                nascimento={nascimento}
+                setNascimento={setNascimento}
+                endereco={endereco}
+                setEndereco={setEndereco}
+                bairro={bairro}
+                setBairro={setBairro}
+                cidade={cidade}
+                setCidade={setCidade}
+                responsavel={responsavel}
+                setResponsavel={setResponsavel}
+                responsaveis={responsaveis}
+                sexo={sexo}
+                setSexo={setSexo}
+                observacoes={observacoes}
+                setObservacoes={setObservacoes}
+            />
+
+{/* Horários vinculados ao contrato do aluno */}
+<div className="campo">
+    {contratoEditando ? (
+        <EditarHorariosAluno
+            idContrato={contratoEditando.id_contrato}
+        />
+    ) : (
+        <p>
+            Este aluno não possui contrato ativo.
+        </p>
+    )}
+</div>
+
+            <div className="acoes-formulario">
+                <button type="submit">
+                    Salvar alterações
+                </button>
+
+                <button
+                    type="button"
+                    onClick={limparFormulario}
+                >
+                    Cancelar edição
+                </button>
+
+            </div>
+        </form>
+    </div>
+) : (
 
             <div className="painel-pagina">
                 <h3>{alunoEditando !== null ? "Editar aluno" : "Dados do aluno"}</h3>
@@ -713,7 +886,7 @@ async function cadastrarContrato(idAluno) {
                     </div>
                 </form>
             </div>
-
+)}
             <div className="painel-pagina">
                 <h3>Alunos cadastrados</h3>
 
