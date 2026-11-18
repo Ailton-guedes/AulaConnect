@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import apiRequest from "../services/api";
 // Importa o componente responsável pela edição dos alunos
 import EditarAluno from "../components/alunos/EditarAluno";
 import EditarHorariosAluno from "../components/alunos/EditarHorariosAluno";
+import GerarAgendamentosAluno from "../components/alunos/GerarAgendamentosAluno";
 
 function Alunos() {
     // Dados carregados do backend
@@ -11,6 +12,12 @@ function Alunos() {
     const [planos, setPlanos] = useState([]);
     const [professores, setProfessores] = useState([]);
     const [professorSelecionado, setProfessorSelecionado] = useState("");
+    
+    // Controla quando os agendamentos precisam ser atualizados
+    const [atualizacaoAgendamentos, setAtualizacaoAgendamentos] = useState(0);
+
+    // Referência para localizar o formulário de edição na página
+    const formularioEdicaoRef = useRef(null);
 
     // Dados pessoais do aluno
     const [nome, setNome] = useState("");
@@ -483,6 +490,20 @@ async function cadastrarContrato(idAluno) {
         }
     }
 
+    // Rola automaticamente até o formulário quando um aluno entra em edição
+useEffect(() => {
+
+    if (alunoEditando !== null) {
+
+        formularioEdicaoRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    }
+
+}, [alunoEditando]);
+
     return (
         <div className="pagina-alunos">
             <div className="titulo-pagina">
@@ -491,7 +512,9 @@ async function cadastrarContrato(idAluno) {
             </div>
 
             {alunoEditando !== null ? (
-    <div className="painel-pagina">
+    <div className="painel-pagina"
+         ref={formularioEdicaoRef}      
+    >
         <h3>Editar aluno</h3>
 
         <form
@@ -522,16 +545,30 @@ async function cadastrarContrato(idAluno) {
 {/* Horários vinculados ao contrato ativo do aluno */}
 <div className="campo">
     {contratoEditando ? (
-        <EditarHorariosAluno
+        <>
+           {/* Consulta e gerencia os horários semanais */}
+            <EditarHorariosAluno
+                // Identifica o contrato ativo
+                idContrato={contratoEditando.id_contrato}
 
-            // Identifica o contrato para consultar os horários
-            idContrato={contratoEditando.id_contrato}
+                // Identifica o plano contratado
+                idPlano={contratoEditando.id_plano}
 
-            // Identifica o plano para consultar
-            // a quantidade de aulas semanais
-            idPlano={contratoEditando.id_plano}
+                // Avisa quando os agendamentos precisam ser atualizados
+                atualizacaoAgendamentos={atualizacaoAgendamentos}
+            />
 
-        />
+                {/* Geração automática dos agendamentos */}
+                <GerarAgendamentosAluno
+                    // Identifica o contrato ativo
+                    idContrato={contratoEditando.id_contrato}
+
+                    // Executa após a geração dos agendamentos
+                    onAgendamentosGerados={() => {
+                        setAtualizacaoAgendamentos((anterior) => anterior + 1);
+                    }}
+                />
+            </>
     ) : (
         <p>
             Este aluno não possui contrato ativo.

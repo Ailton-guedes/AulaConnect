@@ -21,7 +21,11 @@ const formularioInicial = {
 };
 
 // Consulta e gerencia os horários semanais do contrato
-function EditarHorariosAluno({ idContrato, idPlano }) {
+function EditarHorariosAluno({ 
+    idContrato, 
+    idPlano,
+    atualizacaoAgendamentos
+ }) {
 
     // Horários cadastrados no contrato
     const [horarios, setHorarios] = useState([]);
@@ -145,7 +149,7 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
             consultaAtiva = false;
         };
 
-    }, [idContrato, idPlano]);
+    }, [idContrato, idPlano, atualizacaoAgendamentos]);
 
     // Atualiza um campo do formulário
     function atualizarCampo(campo, valor) {
