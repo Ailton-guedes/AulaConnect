@@ -1,0 +1,329 @@
+
+/* =========================================
+   AULACONNECT - PÁGINA DE PAGAMENTOS
+========================================= */
+
+
+/* =========================================
+   1. ESTRUTURA GERAL DA PÁGINA
+========================================= */
+
+/* Espaçamento interno da página */
+.pagina-pagamentos {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+/* Cabeçalho da página */
+.pagina-pagamentos .titulo-pagina {
+    margin-bottom: 20px;
+}
+
+/* Título principal */
+.pagina-pagamentos .titulo-pagina h2 {
+    margin: 0 0 8px;
+    color: #1e293b;
+    font-size: 24px;
+}
+
+/* Descrição abaixo do título */
+.pagina-pagamentos .titulo-pagina p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+
+/* =========================================
+   2. LAYOUT PRINCIPAL
+========================================= */
+
+/* Cadastro à esquerda e listagem à direita */
+.pagina-pagamentos .layout-pagamentos {
+    display: grid;
+
+    /* Cadastro ocupa 40% e listagem 60% */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+
+    gap: 20px;
+    align-items: start;
+}
+
+/* Painéis do cadastro e da listagem */
+.pagina-pagamentos .layout-pagamentos > .painel-pagina {
+    min-width: 0;
+    margin: 0;
+    padding: 24px;
+
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+/* Títulos dos painéis */
+.pagina-pagamentos .painel-pagina h3 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    color: #1e293b;
+}
+
+
+/* =========================================
+   3. FORMULÁRIO DE CADASTRO
+========================================= */
+
+/* Organiza os campos verticalmente */
+.pagina-pagamentos .formulario-pagamento {
+    display: flex;
+    flex-direction: column;
+
+    gap: 15px;
+
+    width: 100%;
+    max-width: 500px;
+
+    /* Centraliza dentro da coluna de cadastro */
+    margin: 0 auto;
+}
+
+/* Cada campo ocupa uma linha */
+.pagina-pagamentos .formulario-pagamento .campo-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+/* Rótulos dos campos */
+.pagina-pagamentos .formulario-pagamento label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+/* Campos de entrada e seleção */
+.pagina-pagamentos .formulario-pagamento input,
+.pagina-pagamentos .formulario-pagamento select {
+    width: 100%;
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background-color: #ffffff;
+    color: #1e293b;
+
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Destaque ao selecionar um campo */
+.pagina-pagamentos .formulario-pagamento input:focus,
+.pagina-pagamentos .formulario-pagamento select:focus {
+    outline: none;
+    border-color: #436de1;
+
+    box-shadow: 0 0 0 3px rgba(67, 109, 225, 0.12);
+}
+
+
+/* =========================================
+   4. BOTÃO DE CADASTRO
+========================================= */
+
+/* Botão principal do formulário */
+.pagina-pagamentos .formulario-pagamento button {
+    width: 100%;
+    min-height: 44px;
+
+    padding: 12px 20px;
+
+    background-color: #436de1;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s;
+}
+
+/* Efeito ao passar o mouse */
+.pagina-pagamentos .formulario-pagamento button:hover:not(:disabled) {
+    background-color: #3455b5;
+}
+
+/* Botão durante o salvamento */
+.pagina-pagamentos .formulario-pagamento button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mensagem de retorno do cadastro */
+.pagina-pagamentos .mensagem-cadastro {
+    margin: 5px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   5. LISTAGEM DE PAGAMENTOS
+========================================= */
+
+/* Organiza os cards automaticamente */
+.pagina-pagamentos .lista-pagamentos {
+    display: grid;
+
+    /* Cria colunas conforme o espaço disponível */
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 280px), 1fr)
+    );
+
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* Cada pagamento é apresentado em um card */
+.pagina-pagamentos .item-pagamento {
+    background-color: #ffffff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+
+    padding: 18px;
+    margin: 0;
+
+    min-width: 0;
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    transition: box-shadow 0.2s;
+}
+
+/* Destaque ao passar o mouse no card */
+.pagina-pagamentos .item-pagamento:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+/* Textos dos pagamentos */
+.pagina-pagamentos .item-pagamento p {
+    margin: 8px 0;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    color: #334155;
+
+    overflow-wrap: anywhere;
+}
+
+/* Identificação dos campos */
+.pagina-pagamentos .item-pagamento strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+
+/* =========================================
+   6. STATUS DOS PAGAMENTOS
+========================================= */
+
+/* Estilo compartilhado dos status */
+.pagina-pagamentos .status-pago,
+.pagina-pagamentos .status-pendente {
+    display: inline-block;
+
+    padding: 5px 10px;
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Pagamentos realizados */
+.pagina-pagamentos .status-pago {
+    color: #15803d;
+    background-color: #dcfce7;
+}
+
+/* Pagamentos pendentes */
+.pagina-pagamentos .status-pendente {
+    color: #92400e;
+    background-color: #fef3c7;
+}
+
+
+/* =========================================
+   7. RESPONSIVIDADE
+========================================= */
+
+/* Tablets e telas intermediárias */
+@media (max-width: 1100px) {
+
+    /* Coloca a listagem abaixo do cadastro */
+    .pagina-pagamentos .layout-pagamentos {
+        grid-template-columns: 1fr;
+    }
+
+    /* Mantém o formulário centralizado */
+    .pagina-pagamentos .formulario-pagamento {
+        max-width: 500px;
+    }
+
+    /* Aproveita melhor o espaço da listagem */
+    .pagina-pagamentos .lista-pagamentos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Celulares e telas pequenas */
+@media (max-width: 650px) {
+
+    /* Reduz o espaçamento da página */
+    .pagina-pagamentos {
+        padding: 12px;
+    }
+
+    /* Reduz o espaçamento entre os painéis */
+    .pagina-pagamentos .layout-pagamentos {
+        gap: 15px;
+    }
+
+    /* Ajusta o espaço interno dos painéis */
+    .pagina-pagamentos .layout-pagamentos > .painel-pagina {
+        padding: 16px;
+    }
+
+    /* Formulário ocupa a largura disponível */
+    .pagina-pagamentos .formulario-pagamento {
+        max-width: 100%;
+    }
+
+    /* Um pagamento por linha */
+    .pagina-pagamentos .lista-pagamentos {
+        grid-template-columns: 1fr;
+    }
+
+    /* Cards mais compactos */
+    .pagina-pagamentos .item-pagamento {
+        padding: 14px;
+    }
+
+    /* Ajusta o título */
+    .pagina-pagamentos .titulo-pagina h2 {
+        font-size: 21px;
+    }
+}
