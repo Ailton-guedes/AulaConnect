@@ -226,7 +226,40 @@ def listar_agendamentos(
 
     return agendamentos
 
+# ==========================================
+# LISTAR AGENDAMENTOS POR CONTRATO
+# ==========================================
 
+@router.get(
+    "/contrato/{id_contrato}",
+    response_model=list[AgendamentoResponse]
+)
+def listar_agendamentos_contrato(
+    id_contrato: int,
+    db: Session = Depends(get_db)
+):
+
+    # Verifica se o contrato existe
+    contrato = db.query(Contrato).filter(
+        Contrato.id_contrato == id_contrato
+    ).first()
+
+    if contrato is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Contrato não encontrado."
+        )
+
+    # Consulta as aulas vinculadas ao contrato
+    agendamentos = db.query(Agendamento).filter(
+        Agendamento.id_contrato == id_contrato
+    ).order_by(
+        Agendamento.data_aula,
+        Agendamento.horario_inicio
+    ).all()
+
+    # Retorna a lista, inclusive vazia se não houver aulas
+    return agendamentos
 # ==========================================
 # EDITAR AGENDAMENTO
 # ==========================================

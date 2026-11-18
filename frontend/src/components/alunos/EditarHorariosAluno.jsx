@@ -26,6 +26,9 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
     // Horários cadastrados no contrato
     const [horarios, setHorarios] = useState([]);
 
+    // Armazena os agendamentos já gerados para o contrato
+    const [agendamentos, setAgendamentos] = useState([]);
+
     // Plano vinculado ao contrato
     const [plano, setPlano] = useState(null);
 
@@ -60,6 +63,7 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
             setHorarioEditando(null);
             setHorarios([]);
             setPlano(null);
+            setAgendamentos([]);
 
             if (!idContrato || !idPlano) {
                 setErro("Contrato ou plano não informado.");
@@ -69,13 +73,19 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
 
             try {
 
-                // Consulta os horários do contrato
-                // e os planos cadastrados
-                const [dadosHorarios, dadosPlanos] = await Promise.all([
+                // Consulta horários, planos e agendamentos do contrato
+                const [
+                    dadosHorarios,
+                    dadosPlanos,
+                    dadosAgendamentos
+                ] = await Promise.all([
                     apiRequest(
                         `/horarios-contrato/contrato/${idContrato}`
                     ),
-                    apiRequest("/planos/")
+                    apiRequest("/planos/"),
+                    apiRequest(
+                        `/agendamento/contrato/${idContrato}`
+                    )
                 ]);
 
                 // Localiza o plano vinculado ao contrato
@@ -89,12 +99,26 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
                     throw new Error("Plano do contrato não encontrado.");
                 }
 
-                if (consultaAtiva) {
-                    setHorarios(
-                        Array.isArray(dadosHorarios) ? dadosHorarios : []
-                    );
-                    setPlano(planoEncontrado);
-                }
+               if (consultaAtiva) {
+
+    
+    // Atualiza os horários cadastrados
+    setHorarios(
+        Array.isArray(dadosHorarios)
+            ? dadosHorarios
+            : []
+    );
+
+    // Atualiza o plano do contrato
+    setPlano(planoEncontrado);
+
+    // Atualiza os agendamentos vinculados ao contrato
+    setAgendamentos(
+        Array.isArray(dadosAgendamentos)
+            ? dadosAgendamentos
+            : []
+    );
+}
 
             } catch (erroConsulta) {
 
@@ -273,6 +297,13 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
         Number.isInteger(limiteSemanal) &&
         horarios.length < limiteSemanal;
 
+    // Conta quantos agendamentos existem para um horário semanal
+    function contarAgendamentos(idHorario) {
+        return agendamentos.filter(
+            (agendamento) =>
+                Number(agendamento.id_horario) === Number(idHorario)
+        ).length;
+    }
     // Formulário compartilhado entre cadastro e edição
     const formularioHorario = modo && (
         <div className="formulario-horario">
@@ -445,13 +476,29 @@ function EditarHorariosAluno({ idContrato, idPlano }) {
                                     {" minutos"}
                                 </p>
 
-                                <button
-                                    type="button"
-                                    onClick={() => iniciarEdicao(horario)}
-                                    disabled={salvando || modo !== null}
-                                >
-                                    Editar horário
-                                </button>
+             {/* Informa quantas aulas foram geradas */}
+{contarAgendamentos(horario.id_horario) > 0 && (
+    <p style={{ color: "#92400e" }}>
+        Este horário possui{" "}
+        {contarAgendamentos(horario.id_horario)}{" "}
+        agendamentos gerados.
+    </p>
+)}
+
+{/* Bloqueia a edição de horários com agendamentos */}
+<button
+    type="button"
+    onClick={() => iniciarEdicao(horario)}
+    disabled={
+        salvando ||
+        modo !== null ||
+        contarAgendamentos(horario.id_horario) > 0
+    }
+>
+    {contarAgendamentos(horario.id_horario) > 0
+        ? "Horário protegido"
+        : "Editar horário"}
+</button>
 
                             </div>
                         ))}

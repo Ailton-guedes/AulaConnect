@@ -5,7 +5,10 @@ from pydantic import BaseModel, ConfigDict
 from datetime import date, time
 
 
-# Define os dados necessários para cadastrar um agendamento
+# ==========================================================
+# DADOS PARA CADASTRAR UM AGENDAMENTO
+# ==========================================================
+
 class AgendamentoCreate(BaseModel):
 
     # Aluno que participará da aula
@@ -29,27 +32,51 @@ class AgendamentoCreate(BaseModel):
     # Situação do agendamento
     status: str
 
-    # Frequência do aluno 
-    presenca: str | None =  None
+    # Frequência do aluno
+    presenca: str | None = None
 
 
-# Define os dados retornados pela API
+# ==========================================================
+# DADOS RETORNADOS PELA API
+# ==========================================================
+
 class AgendamentoResponse(BaseModel):
 
     # Permite converter objetos do SQLAlchemy em respostas Pydantic
     model_config = ConfigDict(from_attributes=True)
 
+    # Identificador do agendamento
     id_agendamento: int
+
+    # Aluno relacionado ao agendamento
     id_aluno: int
+
+    # Aula vinculada ao agendamento
     id_aula: int | None = None
+
+    # Contrato que originou o agendamento
     id_contrato: int | None = None
+
+    # Horário semanal que originou o agendamento
+    # Pode ser nulo para aulas experimentais ou registros antigos
+    id_horario: int | None = None
+
+    # Data e horário da aula
     data_aula: date
     horario_inicio: time | None = None
+
+    # Tipo e situação do agendamento
     tipo_agendamento: str
     status: str
+
+    # Frequência registrada
     presenca: str | None = None
 
-# Dados recebidos para registrar a frequência do aluno
+
+# ==========================================================
+# REGISTRAR PRESENÇA OU FALTA
+# ==========================================================
+
 class PresencaUpdate(BaseModel):
 
     # Aceita somente presente ou falta

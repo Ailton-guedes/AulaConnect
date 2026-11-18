@@ -251,6 +251,10 @@ def buscar_contrato(
 # GERAR AGENDAMENTOS AUTOMÁTICOS DO CONTRATO
 # ==========================================================
 
+# ==========================================================
+# GERAR AGENDAMENTOS AUTOMÁTICOS DO CONTRATO
+# ==========================================================
+
 @router.post("/{id_contrato}/gerar-agendamentos")
 def gerar_agendamentos(
     id_contrato: int,
@@ -276,43 +280,65 @@ def gerar_agendamentos(
             detail="O contrato não está ativo."
         )
 
-    # Busca os horários semanais cadastrados no contrato
+    # Busca o plano vinculado ao contrato
+    plano = db.query(Plano).filter(
+        Plano.id_plano == contrato.id_plano
+    ).first()
+
+    if plano is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Plano do contrato não encontrado."
+        )
+
+    # Busca os horários semanais cadastrados
     horarios = db.query(HorarioContrato).filter(
         HorarioContrato.id_contrato == id_contrato
     ).all()
 
-    # Impede gerar aulas sem horários cadastrados
+    # Impede gerar agendamentos sem horários
     if not horarios:
         raise HTTPException(
             status_code=400,
             detail="O contrato não possui horários cadastrados."
         )
 
-    # Contadores para apresentar o resultado
+    # Verifica se todos os horários do plano foram cadastrados
+    if plano.aulas_por_semana is None or (
+        len(horarios) != plano.aulas_por_semana
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "A quantidade de horários cadastrados "
+                "não corresponde às aulas semanais do plano."
+            )
+        )
+
+    # Contadores da geração
     quantidade_criada = 0
     quantidade_existente = 0
 
-    # Percorre cada horário semanal do contrato
     try:
+        # Percorre os horários semanais
         for horario in horarios:
 
             # Começa na data inicial do contrato
             data_atual = contrato.data_inicio
 
-            # Calcula quantos dias faltam até o dia da semana
+            # Calcula a primeira ocorrência do dia da semana
             dias_ate_aula = (
                 horario.dia_semana - data_atual.weekday()
             ) % 7
 
-            # Encontra a primeira ocorrência da aula
             data_atual += timedelta(days=dias_ate_aula)
 
-            # Percorre as semanas até o fim do contrato
+            # Percorre as semanas até o término do contrato
             # A data final é exclusiva
             while data_atual < contrato.data_fim:
 
-                # Verifica se já existe um agendamento
-                # para o mesmo aluno, data e horário
+                # Verifica se já existe uma aula do aluno
+                # na mesma data e horário
                 agendamento_existente = db.query(
                     Agendamento
                 ).filter(
@@ -323,16 +349,18 @@ def gerar_agendamentos(
 
                 if agendamento_existente is not None:
 
-                    # Não cria outro agendamento no mesmo horário
+                    # Evita duplicar o agendamento
                     quantidade_existente += 1
 
                 else:
 
                     # Cria o agendamento vinculado ao contrato
+                    # e ao horário semanal que o originou
                     novo_agendamento = Agendamento(
                         id_aluno=contrato.id_aluno,
                         id_aula=horario.id_aula,
                         id_contrato=contrato.id_contrato,
+                        id_horario=horario.id_horario,
                         data_aula=data_atual,
                         horario_inicio=horario.horario_inicio,
                         tipo_agendamento="regular",
@@ -340,20 +368,21 @@ def gerar_agendamentos(
                     )
 
                     db.add(novo_agendamento)
+
                     quantidade_criada += 1
 
                 # Avança para a próxima semana
                 data_atual += timedelta(days=7)
 
-        # Salva todos os agendamentos de uma vez
+        # Salva os agendamentos
         db.commit()
 
     except Exception:
-        # Desfaz as alterações se ocorrer algum erro
+        # Desfaz as alterações em caso de erro
         db.rollback()
         raise
 
-    # Retorna um resumo da geração
+    # Retorna o resultado da geração
     return {
         "mensagem": "Geração de agendamentos concluída.",
         "id_contrato": id_contrato,

@@ -19,6 +19,7 @@ from backend.models.horario_contrato import HorarioContrato
 from backend.models.contrato import Contrato
 from backend.models.aula import Aula
 from backend.models.plano import Plano
+from backend.models.agendamento import Agendamento
 
 # Importa os schemas de validação
 from backend.schemas.horario_contrato import (
@@ -408,7 +409,28 @@ def atualizar_horario(
             detail="Horário não encontrado."
         )
 
-    # Busca o contrato vinculado ao horário
+    # ==========================================================
+    # PROTEÇÃO DE HORÁRIOS COM AGENDAMENTOS GERADOS
+    # ==========================================================
+
+    # Verifica se o horário semanal já possui aulas vinculadas
+    agendamento_existente = db.query(Agendamento).filter(
+        Agendamento.id_horario == id_horario
+        ).first()
+
+    # Impede alterar o horário enquanto houver agendamentos
+    # vinculados a ele
+    if agendamento_existente is not None:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Este horário já possui agendamentos gerados. "
+                "Não é possível alterá-lo até que a "
+                "remarcação das aulas seja implementada."
+            )
+        )
+
+        # Busca o contrato vinculado ao horário
     contrato = db.query(Contrato).filter(
         Contrato.id_contrato == horario.id_contrato
     ).first()
@@ -431,6 +453,8 @@ def atualizar_horario(
             status_code=400,
             detail="O contrato não possui professor responsável."
         )
+
+    
 
     # ======================================================
     # VALIDAR AULA VINCULADA

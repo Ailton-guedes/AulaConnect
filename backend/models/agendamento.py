@@ -40,6 +40,15 @@ class Agendamento(Base):
         nullable=True
     )
 
+    # Horário semanal que originou o agendamento
+    # Permite identificar quais aulas pertencem a cada horário do contrato
+    # Pode ser nulo para aulas experimentais ou registros antigos
+    id_horario = Column(
+    Integer,
+    ForeignKey("horarios_contrato.id_horario"),
+    nullable=True
+)
+
     # Data em que a aula será realizada
     data_aula = Column(
         Date,
