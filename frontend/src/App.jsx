@@ -13,6 +13,7 @@ import Responsaveis from "./pages/Responsaveis";
 import Aulas from "./pages/Aulas";
 import Agendamentos from "./pages/Agendamentos";
 import Frequencia from "./pages/Frequencia";
+import Pagamentos from "./pages/Pagamentos";
 
 
 // Verifica se existe um token JWT
@@ -90,7 +91,14 @@ function App() {
                         element={<Frequencia />}
                     />
 
+                    {/* Página de gerenciamento de pagamentos */}
+                <Route 
+                    path="/pagamentos"
+                     element={<Pagamentos />} 
+                />
+
                 </Route>
+
 
             </Route>
 
