@@ -15,6 +15,7 @@ import Agendamentos from "./pages/Agendamentos";
 import Frequencia from "./pages/Frequencia";
 import Pagamentos from "./pages/Pagamentos";
 import Evolucoes from "./pages/Evolucoes";
+import Notificacoes from "./pages/Notificacoes";
 
 
 // Verifica se existe um token JWT
@@ -68,42 +69,18 @@ function App() {
 
             {/* Páginas protegidas */}
             <Route element={<RotaProtegida />}>
+            <Route element={<LayoutSistema />}>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/alunos" element={<Alunos />} />
+            <Route path="/responsaveis" element={<Responsaveis />} />
+            <Route path="/aulas" element={<Aulas />} />
+            <Route path="/agendamentos" element={<Agendamentos />} />
+            <Route path="/frequencia" element={<Frequencia />}/>
+            <Route path="/pagamentos" element={<Pagamentos />} />
+            <Route path="/evolucoes" element={<Evolucoes />}  />
+            <Route path="/notificacoes" element={<Notificacoes />} />
 
-                <Route element={<LayoutSistema />}>
-
-                    <Route path="/" element={<Inicio />} />
-
-                    <Route path="/alunos" element={<Alunos />} />
-
-                    <Route
-                        path="/responsaveis"
-                        element={<Responsaveis />}
-                    />
-
-                    <Route path="/aulas" element={<Aulas />} />
-
-                    <Route
-                        path="/agendamentos"
-                        element={<Agendamentos />}
-                    />
-
-                    <Route
-                        path="/frequencia"
-                        element={<Frequencia />}
-                    />
-
-                    {/* Página de gerenciamento de pagamentos */}
-                <Route 
-                    path="/pagamentos"
-                     element={<Pagamentos />} 
-                />
-                {/* Página de acompanhamento da evolução dos alunos */}
-                    <Route 
-                    path="/evolucoes"
-                     element={<Evolucoes />} 
-                />
-                </Route>
-
+            </Route>
 
             </Route>
 
