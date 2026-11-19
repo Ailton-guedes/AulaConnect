@@ -112,3 +112,38 @@
         font-size: 28px;
     }
 }
+/* Área de cadastro de novos usuários */
+.opcoes-login {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.opcoes-login p {
+    margin-bottom: 8px;
+}
+
+.opcoes-login a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.opcoes-login a:hover {
+    text-decoration: underline;
+}
+
+/* Link para recuperação de senha */
+.recuperar-senha {
+    margin: 12px 0;
+    text-align: right;
+}
+
+.recuperar-senha a {
+    color: #2563eb;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.recuperar-senha a:hover {
+    text-decoration: underline;
+}

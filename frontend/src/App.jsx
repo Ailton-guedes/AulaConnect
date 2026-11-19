@@ -7,6 +7,8 @@ import Cabecalho from "./components/Cabecalho";
 
 // Páginas do sistema
 import Login from "./pages/Login";
+import Cadastro from "./pages/Cadastro";
+import RecuperarSenha from "./pages/RecuperarSenha";
 import Inicio from "./pages/Inicio";
 import Alunos from "./pages/Alunos";
 import Responsaveis from "./pages/Responsaveis";
@@ -66,6 +68,8 @@ function App() {
 
             {/* Página pública de login */}
             <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
             {/* Páginas protegidas */}
             <Route element={<RotaProtegida />}>

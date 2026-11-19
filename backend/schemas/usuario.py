@@ -1,18 +1,29 @@
 
 # Importa o BaseModel para definir os dados da API
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from typing import Literal
 
 # Importa o tipo utilizado para representar data e hora
 from datetime import datetime
 
 
-# Dados recebidos no cadastro de usuário
+# Dados recebidos no cadastro inicial de administrador
+class UsuarioCadastroInicial(BaseModel):
+
+    nome: str = Field(min_length=3, max_length=100)
+    email: EmailStr
+    senha: str = Field(min_length=8)
+
+
+# Dados recebidos quando um administrador cadastra usuários
 class UsuarioCreate(BaseModel):
 
-    nome: str
+    nome: str = Field(min_length=3, max_length=100)
     email: EmailStr
-    senha: str
-    tipo_usuario: str
+    senha: str = Field(min_length=8)
+
+    # Permite apenas os perfis existentes no sistema
+    tipo_usuario: Literal["Adm", "PROFESSOR"]
 
 
 # Dados que a API pode devolver ao consultar um usuário

@@ -1,0 +1,155 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Login.css";
+
+function Cadastro() {
+
+    // Armazena os dados digitados no formulário
+    const [nome, setNome] = useState("");
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
+    const [confirmarSenha, setConfirmarSenha] = useState("");
+
+    // Controla as mensagens e o carregamento
+    const [erro, setErro] = useState("");
+    const [carregando, setCarregando] = useState(false);
+
+    // Permite navegar entre páginas
+    const navigate = useNavigate();
+
+    // Valida o formulário antes de cadastrar
+    function cadastrarUsuario(evento) {
+        evento.preventDefault();
+
+        setErro("");
+
+        // Verifica se as senhas são iguais
+        if (senha !== confirmarSenha) {
+            setErro("As senhas não coincidem.");
+            return;
+        }
+
+        // Verifica o tamanho mínimo da senha
+        if (senha.length < 8) {
+            setErro("A senha deve ter pelo menos 8 caracteres.");
+            return;
+        }
+
+        // A integração com o FastAPI será feita
+        // na próxima etapa.
+    }
+
+    return (
+        <div className="pagina-login">
+
+            <div className="painel-login">
+
+                <h1>AulaConnect</h1>
+
+                <p>Crie sua conta para acessar o sistema</p>
+
+                <form onSubmit={cadastrarUsuario}>
+
+                    {/* Nome completo */}
+                    <div className="campo">
+                        <label htmlFor="nomeCadastro">
+                            Nome completo
+                        </label>
+
+                        <input
+                            id="nomeCadastro"
+                            type="text"
+                            value={nome}
+                            onChange={(evento) =>
+                                setNome(evento.target.value)
+                            }
+                            required
+                        />
+                    </div>
+
+                    {/* E-mail */}
+                    <div className="campo">
+                        <label htmlFor="emailCadastro">
+                            E-mail
+                        </label>
+
+                        <input
+                            id="emailCadastro"
+                            type="email"
+                            value={email}
+                            onChange={(evento) =>
+                                setEmail(evento.target.value)
+                            }
+                            required
+                        />
+                    </div>
+
+                    {/* Senha */}
+                    <div className="campo">
+                        <label htmlFor="senhaCadastro">
+                            Senha
+                        </label>
+
+                        <input
+                            id="senhaCadastro"
+                            type="password"
+                            value={senha}
+                            onChange={(evento) =>
+                                setSenha(evento.target.value)
+                            }
+                            minLength={8}
+                            required
+                        />
+                    </div>
+
+                    {/* Confirmação da senha */}
+                    <div className="campo">
+                        <label htmlFor="confirmarSenha">
+                            Confirmar senha
+                        </label>
+
+                        <input
+                            id="confirmarSenha"
+                            type="password"
+                            value={confirmarSenha}
+                            onChange={(evento) =>
+                                setConfirmarSenha(evento.target.value)
+                            }
+                            required
+                        />
+                    </div>
+
+                    {/* Mensagem de erro */}
+                    {erro && (
+                        <p role="alert" className="erro-login">
+                            {erro}
+                        </p>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={carregando}
+                    >
+                        {carregando
+                            ? "Cadastrando..."
+                            : "Criar conta"}
+                    </button>
+
+                </form>
+
+                {/* Retorno para o login */}
+                <div className="opcoes-login">
+                    <p>Já possui uma conta?</p>
+
+                    <Link to="/login">
+                        Fazer login
+                    </Link>
+                </div>
+
+            </div>
+
+        </div>
+    );
+}
+
+export default Cadastro;

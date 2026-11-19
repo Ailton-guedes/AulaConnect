@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 
 function Login() {
@@ -122,7 +122,14 @@ function Login() {
                             required
                         />
                     </div>
+{/* Acesso à futura recuperação de senha */}
+<div className="recuperar-senha">
 
+    <Link to="/recuperar-senha">
+        Esqueci minha senha
+    </Link>
+
+</div>
                     {erro && (
                         <p role="alert" className="erro-login">
                             {erro}
@@ -137,7 +144,18 @@ function Login() {
                             ? "Entrando..."
                             : "Entrar"}
                     </button>
+{/* Opção para novos usuários se cadastrarem */}
+<div className="opcoes-login">
 
+    <p>
+        Ainda não possui uma conta?
+    </p>
+
+    <Link to="/cadastro">
+        Criar nova conta
+    </Link>
+
+</div>
                 </form>
 
             </div>

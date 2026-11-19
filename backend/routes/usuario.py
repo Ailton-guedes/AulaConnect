@@ -59,8 +59,16 @@ def lista_usuarios(
 
 def cadastrar_usuario(
     usuario: UsuarioCreate,
-    db: Session = Depends(get_db)    
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(obter_usuario_atual)
 ):
+
+    # Verifica se o usuário autenticado é administrador
+    if usuario_atual.tipo_usuario != "Adm":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores podem cadastrar usuários."
+        )
     #Verifica se o e-mail já está cadastrado
     usuario_existente = db.query(Usuario).filter(
         Usuario.email == usuario.email
@@ -92,13 +100,6 @@ def cadastrar_usuario(
         raise
     # Retorna o usuário sem incluir a senha ou o hash
     return novo_usuario
-
-# Post Autenicação / login
-@router.post(
-    "/login",
-    response_model=TokenResponse,
-    status_code=status.HTTP_200_OK
-)
 
 # POST - Autenticação / login usando OAuth2
 @router.post(
