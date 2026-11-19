@@ -49,7 +49,7 @@ function Aulas() {
 
     // Cadastrar uma nova aula au atualizar uma existente
     async function salvarAula(event) {
-        event.prevent.Default();
+        event.preventDefault();
 
         setMensagem('');
         setErro('');
@@ -70,14 +70,14 @@ function Aulas() {
                     method: 'PUT',
                     body: JSON.stringify(dadosAula),
                 });
-                setMensagem('Aula atualiada com sucessso!');
+                setMensagem('Aula atualiada com sucesso!');
             } else {
-                await apiRequest('/Aula/', {
+                await apiRequest('/aulas/', {
                     method: 'POST',
                     body: JSON.stringify(dadosAula),
                 });
 
-                setMensagem('Aula cadastrado com sucesso!');
+                setMensagem('Aula cadastrada com sucesso!');
             }
 
             limparFormulario();
@@ -113,7 +113,9 @@ function Aulas() {
         setErro('');
 
         try {
-            await apiRequest(`/aula/${id}`, {
+
+          // Solicita ao FastAPI a exclusão da aula pelo ID
+            await apiRequest(`/aulas/${id}`, {
                 method: 'DELETE',
             });
 
@@ -131,10 +133,15 @@ function Aulas() {
 
     return (
         <section className='pagina-alino'>
-            <h1 className='titulo-pagina'>Gerenciamento de Aulas</h1>
+            <h1 className='titulo-pagina'>Aulas Avulsas e Experimentais</h1>
             {/* Formulário de cadastro e edição */}
             <div className='painel-pagina'>
-              <h2>{aulaEditando ? 'Editar Aula' : 'Cadastrar Aula'}</h2>
+            {/* Título muda conforme o formulário está cadastrando ou editando */}
+            <h2>
+                  {aulaEditando
+                    ? 'Editar Aula'
+                    : 'Cadastrar Aula Avulsa'}
+            </h2>
               <form className='formulario-pagina' onSubmit={salvarAula}>
                 <div className='campo'>
                     <label>Descrição da aula *</label>
@@ -147,7 +154,7 @@ function Aulas() {
                     />
                 </div>
 
-                <div>
+                <div className="campo">
                     <label> Dia da semana *</label>
                     <select
                         value={diaSemana}
@@ -205,9 +212,12 @@ function Aulas() {
           </div>
 
           <div className="acoes-formulario">
-            <button type="submit">
-              {aulaEditando ? 'Salvar alterações' : 'Cadastrar aula'}
-            </button>
+
+           <button type="submit">
+              {aulaEditando
+                ? 'Salvar alterações'
+                : 'Cadastrar aula avulsa'}
+      </button>
 
             {aulaEditando && (
               <button type="button" onClick={limparFormulario}>
@@ -223,8 +233,7 @@ function Aulas() {
 
       {/* Lista de aulas cadastradas */}
       <div className="painel-pagina">
-        <h2>Aulas cadastradas</h2>
-
+      <h2>Aulas avulsas e experimentais cadastradas</h2>
         <div className="lista-alunos">
           {aulas.length === 0 ? (
             <p>Nenhuma aula cadastrada.</p>

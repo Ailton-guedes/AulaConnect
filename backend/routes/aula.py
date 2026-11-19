@@ -13,6 +13,9 @@ from backend.models.aula import Aula
 # Importa os schemas de aula
 from backend.schemas.aula import Aulacreate, AulaResponse, AulaUpdate
 
+# Essa classe permite identificar erros de integridade do banco
+from sqlalchemy.exc import IntegrityError
+
 #Cria um grupo de rotas para aulas
 router  = APIRouter(
     prefix="/aulas",
@@ -106,10 +109,18 @@ def atualizar_aula(
     return aula
 
 # Exclui uma aula pelo identificador
-@router.delete("/{id_aula}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_aula(id_aula: int, db: Session = Depends(get_db)):
-    # Procura a aula que será excluída
-    aula = db.query(Aula).filter(Aula.id_aula == id_aula).first()
+@router.delete(
+    "/{id_aula}",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+def excluir_aula(
+    id_aula: int,
+    db: Session = Depends(get_db)
+):
+    # Procura a aula no banco de dados
+    aula = db.query(Aula).filter(
+        Aula.id_aula == id_aula
+    ).first()
 
     # Verifica se a aula existe
     if aula is None:
@@ -118,8 +129,22 @@ def excluir_aula(id_aula: int, db: Session = Depends(get_db)):
             detail="Aula não encontrada."
         )
 
-    # Remove a aula da sessão
-    db.delete(aula)
+    try:
+        # Solicita a exclusão da aula
+        db.delete(aula)
 
-    # Confirma a exclusão no banco
-    db.commit()
+        # Confirma a exclusão no banco
+        db.commit()
+
+    except IntegrityError:
+        # Desfaz a operação que falhou
+        db.rollback()
+
+        # Informa que existem registros vinculados
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Não é possível excluir esta aula porque "
+                "existem registros vinculados a ela."
+            )
+        )
