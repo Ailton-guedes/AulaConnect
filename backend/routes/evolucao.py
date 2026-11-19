@@ -14,7 +14,7 @@ from backend.schemas.evolucao import EvolucaoCreate, EvolucaoResponse
 
 # Cria o roteador de evoluções
 router = APIRouter(
-    prefix="/evoluções",
+    prefix="/evolucoes",
     tags=["Evoluções"]
 )
 # Rota para cadastrar uma evolução

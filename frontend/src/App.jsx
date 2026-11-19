@@ -14,6 +14,7 @@ import Aulas from "./pages/Aulas";
 import Agendamentos from "./pages/Agendamentos";
 import Frequencia from "./pages/Frequencia";
 import Pagamentos from "./pages/Pagamentos";
+import Evolucoes from "./pages/Evolucoes";
 
 
 // Verifica se existe um token JWT
@@ -96,7 +97,11 @@ function App() {
                     path="/pagamentos"
                      element={<Pagamentos />} 
                 />
-
+                {/* Página de acompanhamento da evolução dos alunos */}
+                    <Route 
+                    path="/evolucoes"
+                     element={<Evolucoes />} 
+                />
                 </Route>
 
 
