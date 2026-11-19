@@ -327,3 +327,43 @@
         font-size: 21px;
     }
 }
+/* ==========================================
+   AÇÕES DOS PAGAMENTOS
+========================================== */
+
+/* Organiza os botões lado a lado */
+.pagina-pagamentos .acoes-pagamento {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+/* Estilo geral dos botões */
+.pagina-pagamentos .acoes-pagamento button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Botão editar */
+.pagina-pagamentos .btn-editar-pagamento {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+/* Botão excluir */
+.pagina-pagamentos .btn-excluir-pagamento {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Botões temporariamente desabilitados */
+.pagina-pagamentos .acoes-pagamento button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+

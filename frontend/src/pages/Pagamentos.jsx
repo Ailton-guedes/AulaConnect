@@ -16,6 +16,9 @@ function Pagamentos() {
 
     // Armazena uma mensagem caso a consulta apresente erro
     const [erro, setErro] = useState("");
+    // Armazena o ID do pagamento que está sendo editado.
+    // null significa que o formulário está no modo de cadastro.
+    const [pagamentoEditando, setPagamentoEditando] = useState(null);
 
     // ==================================================
     // ESTADOS DO FORMULÁRIO DE PAGAMENTOS
@@ -159,23 +162,56 @@ setSalvando(true);
 
 try {
 
-    // Envia os dados para o FastAPI cadastrar no MySQL
-    const pagamentoCadastrado = await apiRequest("/pagamentos/", {
-        method: "POST",
-        body: JSON.stringify(novoPagamento)
-    });
+    // Verifica se estamos editando um pagamento existente
+const estaEditando = pagamentoEditando !== null;
 
-    // Exibe a resposta do backend no console
-    console.log("Pagamento cadastrado:", pagamentoCadastrado);
+// Define a URL conforme a operação
+const url = estaEditando
+    ? `/pagamentos/${pagamentoEditando}`
+    : "/pagamentos/";
 
-    // Adiciona o pagamento recém-cadastrado à lista da página
+// Define o método HTTP
+const metodo = estaEditando ? "PUT" : "POST";
+
+// Envia os dados para o FastAPI
+const pagamentoSalvo = await apiRequest(url, {
+    method: metodo,
+    body: JSON.stringify(novoPagamento)
+});
+
+    // ==================================================
+// ATUALIZAR A LISTA DE PAGAMENTOS
+// ==================================================
+
+// Verifica se estamos editando ou cadastrando
+if (estaEditando) {
+
+    // Atualiza o pagamento existente na lista
+    setPagamentos((pagamentosAtuais) =>
+        pagamentosAtuais.map((pagamento) =>
+            pagamento.id_pagamento === pagamentoEditando
+                ? pagamentoSalvo
+                : pagamento
+        )
+    );
+
+    // Informa que a edição foi realizada
+    setMensagemCadastro("Pagamento atualizado com sucesso!");
+
+} else {
+
+    // Adiciona o novo pagamento à lista
     setPagamentos((pagamentosAtuais) => [
         ...pagamentosAtuais,
-        pagamentoCadastrado
-]);
+        pagamentoSalvo
+    ]);
 
     // Informa que o cadastro foi realizado
     setMensagemCadastro("Pagamento cadastrado com sucesso!");
+}
+
+// Retorna o formulário ao modo de cadastro
+setPagamentoEditando(null);
 
 // LIMPAR FORMULÁRIO APÓS CADASTRO
 setAlunoSelecionado("");// Limpa o aluno selecionado
@@ -203,7 +239,7 @@ setFormaPagamento("");// Limpa a forma de pagamento
 
 }
 
-    // ==================================================
+   // ==================================================
 // FORMATAR DATAS PARA O PADRÃO BRASILEIRO
 // ==================================================
 
@@ -222,6 +258,107 @@ function formatarData(data) {
     return `${dia}/${mes}/${ano}`;
 }
 
+// ==================================================
+// CARREGAR PAGAMENTO PARA EDIÇÃO
+// ==================================================
+
+// Recebe os dados do pagamento selecionado
+function editarPagamento(pagamento) {
+
+    // Armazena o ID do pagamento em edição
+    setPagamentoEditando(pagamento.id_pagamento);
+
+    // Preenche os campos do formulário
+    setAlunoSelecionado(String(pagamento.id_aluno));
+
+    setValor(String(pagamento.valor));
+
+    setDataVencimento(pagamento.data_vencimento || "");
+
+    setStatusPagamento(pagamento.status);
+
+    setFormaPagamento(pagamento.forma_pagamento || "");
+
+    setDataPagamento(pagamento.data_pagamento || "");
+
+    // Limpa mensagens anteriores
+    setMensagemCadastro("");
+}
+
+// ==================================================
+// CANCELAR EDIÇÃO DE PAGAMENTO
+// ==================================================
+
+function cancelarEdicao() {
+
+    // Retorna o formulário ao modo de cadastro
+    setPagamentoEditando(null);
+
+    // Limpa os campos do formulário
+    setAlunoSelecionado("");
+    setValor("");
+    setDataVencimento("");
+    setDataPagamento("");
+    setStatusPagamento("pendente");
+    setFormaPagamento("");
+
+    // Limpa mensagens anteriores
+    setMensagemCadastro("");
+}
+
+// ==================================================
+// EXCLUIR PAGAMENTO
+// ==================================================
+
+async function excluirPagamento(idPagamento) {
+
+    // Solicita confirmação antes de excluir
+    const confirmar = window.confirm(
+        "Tem certeza que deseja excluir este pagamento?"
+    );
+
+    // Cancela a operação caso o usuário escolha "Cancelar"
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+
+        // Envia a solicitação de exclusão ao FastAPI
+        await apiRequest(`/pagamentos/${idPagamento}`, {
+            method: "DELETE"
+        });
+
+        // Remove o pagamento excluído da lista exibida
+        setPagamentos((pagamentosAtuais) =>
+            pagamentosAtuais.filter(
+                (pagamento) =>
+                    pagamento.id_pagamento !== idPagamento
+            )
+        );
+
+        // Se o pagamento excluído estava sendo editado,
+        // limpa o formulário e cancela a edição
+        if (pagamentoEditando === idPagamento) {
+            cancelarEdicao();
+        }
+
+        // Exibe mensagem de sucesso
+        setMensagemCadastro("Pagamento excluído com sucesso!");
+
+    } catch (erroExclusao) {
+
+        // Exibe o erro no console
+        console.error(
+            "Erro ao excluir pagamento:",
+            erroExclusao
+        );
+
+        // Informa que a exclusão não foi concluída
+        setMensagemCadastro("Não foi possível excluir o pagamento.");
+    }
+}
+
     return (
         <div className="pagina-pagamentos">
 
@@ -238,7 +375,11 @@ function formatarData(data) {
 
                 {/* Painel de cadastro */}
                 <div className="painel-pagina">
-                    <h3>Cadastrar pagamento</h3>
+                    <h3>
+                    {pagamentoEditando !== null
+                    ? "Editar pagamento"
+                    : "Cadastrar pagamento"}
+                    </h3>
 
     {/* Formulário para cadastrar pagamentos */}
     <form
@@ -395,13 +536,37 @@ function formatarData(data) {
     </div>
 
 )}
-    {/* Botão responsável por enviar o formulário */}
+    {/* Botão para cadastrar ou atualizar pagamento */}
+<button
+    type="submit"
+    disabled={salvando}
+>
+    {salvando
+        ? "Salvando..."
+        : pagamentoEditando !== null
+            ? "Salvar alterações"
+            : "Cadastrar pagamento"}
+</button>
+
+
+{/* Exibe o botão Cancelar somente durante a edição */}
+{pagamentoEditando !== null && (
+
     <button
-        type="submit"
+        type="button"
+        className="btn-cancelar-pagamento"
+        onClick={cancelarEdicao}
         disabled={salvando}
     >
-        {salvando ? "Salvando..." : "Cadastrar pagamento"}
+        Cancelar edição
     </button>
+
+
+
+
+)}
+
+
     {/* Exibe mensagens de validação ou cadastro */}
     {mensagemCadastro && (
     <p role="alert" className="mensagem-cadastro">
@@ -495,7 +660,29 @@ function formatarData(data) {
                             : "Pendente"}
                     </span>
                 </p>
+{/* Área dos botões de ações */}
+<div className="acoes-pagamento">
 
+    {/* Botão para editar o pagamento */}
+    <button
+    type="button"
+    className="btn-editar-pagamento"
+    onClick={() => editarPagamento(pagamento)}
+>
+        Editar
+    </button>
+
+    {/* Botão para excluir o pagamento */}
+<button
+    type="button"
+    className="btn-excluir-pagamento"
+    onClick={() => excluirPagamento(pagamento.id_pagamento)}
+    disabled={salvando}
+>
+    Excluir
+</button>
+
+</div>
                     </div>
 
         ))}
