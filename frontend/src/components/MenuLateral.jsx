@@ -70,6 +70,11 @@ function MenuLateral() {
           Notificações
         </NavLink>
 
+       <NavLink to="/usuarios">
+          <UserRound size={18} />
+          Usuários
+        </NavLink>
+
       </nav>
 
     </aside>

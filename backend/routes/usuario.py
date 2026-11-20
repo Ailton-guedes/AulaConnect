@@ -18,6 +18,7 @@ from backend.models.usuario import Usuario
 # importa o Schema utilizado no cadastro
 from backend.schemas.usuario import (
     UsuarioCreate,   # - UsuarioCreate: formato esperado para cadastrar
+    UsuarioUpdate,
     UsuarioResponse, # - UsuarioResponse: formato público para listar sem expor senha
     UsuarioLogin,    # - UsuarioLogin: formato esperado no corpo da requisição de login
     TokenResponse    # - TokenResponse: formato de resposta contendo o JWT
@@ -36,20 +37,23 @@ router = APIRouter(
     tags=["Usuarios"]
 )
 
-# rota para lista todos usuarios cadastrados
-# Define os campos que API pode devolver
+# Lista os usuários cadastrados
+# A consulta é permitida apenas para administradores
 @router.get("/", response_model=list[UsuarioResponse])
 def lista_usuarios(
     db: Session = Depends(get_db),
-    usuario_atual: Usuario= Depends(obter_usuario_atual)
-    ):
+    usuario_atual: Usuario = Depends(obter_usuario_atual)
+):
 
+    # Verifica se o usuário autenticado é administrador
+    if usuario_atual.tipo_usuario != "Adm":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores podem consultar usuários."
+        )
 
-      # Consulta todos os registros da tabela usuarios
-    usuarios = db.query(Usuario).all()
-
-    # retorna os usuarios encontrados
-    return usuarios
+    # Retorna os usuários cadastrados no banco
+    return db.query(Usuario).all()
 
 # POST - Cadastrar usuário
 @router.post("/",
@@ -101,6 +105,80 @@ def cadastrar_usuario(
     # Retorna o usuário sem incluir a senha ou o hash
     return novo_usuario
 
+# PUT - Atualizar os dados de um usuário
+@router.put(
+    "/{id_usuario}",
+    response_model=UsuarioResponse,
+    status_code=status.HTTP_200_OK
+)
+def atualizar_usuario(
+    id_usuario: int,
+    dados_usuario: UsuarioUpdate,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(obter_usuario_atual)
+):
+
+    # Apenas administradores podem editar usuários
+    if usuario_atual.tipo_usuario != "Adm":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores podem editar usuários."
+        )
+
+    # Procura o usuário pelo ID
+    usuario = db.query(Usuario).filter(
+        Usuario.id_usuario == id_usuario
+    ).first()
+
+    # Verifica se o usuário existe
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+    # Impede que o administrador retire seu próprio perfil
+    if (
+        usuario.id_usuario == usuario_atual.id_usuario
+        and dados_usuario.tipo_usuario != "Adm"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Você não pode remover seu próprio perfil de administrador."
+        )
+
+    # Verifica se o novo e-mail pertence a outro usuário
+    email_existente = db.query(Usuario).filter(
+        Usuario.email == dados_usuario.email,
+        Usuario.id_usuario != id_usuario
+    ).first()
+
+    if email_existente:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este e-mail já pertence a outro usuário."
+        )
+
+    # Atualiza os campos permitidos
+    usuario.nome = dados_usuario.nome
+    usuario.email = dados_usuario.email
+    usuario.tipo_usuario = dados_usuario.tipo_usuario
+
+    try:
+        # Salva as alterações no MySQL
+        db.commit()
+
+        # Atualiza os dados do objeto
+        db.refresh(usuario)
+
+    except Exception:
+        # Desfaz a operação em caso de erro
+        db.rollback()
+        raise
+
+    # Retorna os dados atualizados sem expor a senha
+    return usuario
+
 # POST - Autenticação / login usando OAuth2
 @router.post(
     "/login",
@@ -143,38 +221,59 @@ def login(
         "access_token": token,
         "token_type": "bearer"
     }
-# Rota para excluir a própria conta do usuário autenticado
-@router.delete("/{id_usuario}")
-def excluir_usario(
+# DELETE - Excluir um usuário do sistema
+@router.delete(
+    "/{id_usuario}",
+    status_code=status.HTTP_200_OK
+)
+def excluir_usuario(
     id_usuario: int,
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(obter_usuario_atual)
 ):
-# Impede que o usuário exclua a conta de outra pessoa
-    if usuario_atual.id_usuario != id_usuario:
+
+    # Apenas administradores podem excluir usuários
+    if usuario_atual.tipo_usuario != "Adm":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Você só pode excluir sua propria conta."
+            detail="Apenas administradores podem excluir usuários."
         )
 
-# Busca a conta que será excluida
+    # Impede que o administrador exclua sua própria conta
+    if usuario_atual.id_usuario == id_usuario:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Você não pode excluir sua própria conta."
+        )
+
+    # Busca o usuário pelo ID informado
     usuario = db.query(Usuario).filter(
-    Usuario.id_usuario == id_usuario
+        Usuario.id_usuario == id_usuario
     ).first()
 
-# Verifica se a conta existe
+    # Verifica se o usuário existe
     if usuario is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuário não encontrado"
+            detail="Usuário não encontrado."
         )
-    # Exclui a conta e confrima a transação
+
+    # Tenta excluir o registro do MySQL
     try:
         db.delete(usuario)
         db.commit()
+
     except Exception:
         db.rollback()
-        raise
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Não foi possível excluir o usuário. "
+                "Verifique se existem registros vinculados a ele."
+            )
+        )
 
-    # retorna uma mensagem de confirmação
-    return{"Usuário excluido com sucesso."}
+    # Retorna uma mensagem de confirmação
+    return {
+        "mensagem": "Usuário excluído com sucesso."
+    }

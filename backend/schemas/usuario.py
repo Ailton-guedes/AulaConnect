@@ -25,6 +25,18 @@ class UsuarioCreate(BaseModel):
     # Permite apenas os perfis existentes no sistema
     tipo_usuario: Literal["Adm", "PROFESSOR"]
 
+    # Dados permitidos para atualizar um usuário
+class UsuarioUpdate(BaseModel):
+
+    # Nome completo do usuário
+    nome: str = Field(min_length=3, max_length=100)
+
+    # E-mail do usuário
+    email: EmailStr
+
+    # Perfil de acesso permitido no sistema
+    tipo_usuario: Literal["Adm", "PROFESSOR"]
+
 
 # Dados que a API pode devolver ao consultar um usuário
 class UsuarioResponse(BaseModel):

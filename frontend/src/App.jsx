@@ -18,6 +18,7 @@ import Frequencia from "./pages/Frequencia";
 import Pagamentos from "./pages/Pagamentos";
 import Evolucoes from "./pages/Evolucoes";
 import Notificacoes from "./pages/Notificacoes";
+import Usuarios from "./pages/Usuarios";
 
 
 // Verifica se existe um token JWT
@@ -83,6 +84,8 @@ function App() {
             <Route path="/pagamentos" element={<Pagamentos />} />
             <Route path="/evolucoes" element={<Evolucoes />}  />
             <Route path="/notificacoes" element={<Notificacoes />} />
+            <Route path="/usuarios" element={<Usuarios />} />
+
 
             </Route>
 
