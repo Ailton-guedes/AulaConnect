@@ -39,9 +39,8 @@ function Pagamentos() {
     // Armazena a situação do pagamento
     const [statusPagamento, setStatusPagamento] = useState("pendente");
 
-    // Armazena a forma de pagamento utilizada
-    const [formaPagamento, setFormaPagamento] = useState("");
-
+    // Define Pix como forma de pagamento padrão
+    const [formaPagamento, setFormaPagamento] = useState("pix");
     // ==================================================
     // CONTROLE DO CADASTRO DE PAGAMENTOS
     // ==================================================
