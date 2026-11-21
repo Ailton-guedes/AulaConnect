@@ -407,6 +407,41 @@ async function gerarPix(idPagamento) {
     }
 }
 
+// Prepara uma cobrança Pix para envio por e-mail
+function enviarPixPorEmail() {
+    if (!cobrancaPix) {
+        alert("Gere uma cobrança Pix primeiro.");
+        return;
+    }
+
+    const destinatario = "testesailton@gmail.com";
+
+    const assunto = `Cobrança AulaConnect - Pagamento ${cobrancaPix.id_pagamento}`;
+
+    const mensagem = `
+Olá!
+
+Segue a cobrança referente às aulas.
+
+Valor: R$ ${Number(cobrancaPix.valor).toFixed(2)}
+Vencimento: ${cobrancaPix.data_vencimento}
+
+Código Pix Copia e Cola:
+${cobrancaPix.codigo_pix}
+
+Após realizar o pagamento, envie o comprovante ao professor.
+
+Atenciosamente,
+Equipe Personal kids
+`;
+
+   // Monta o link para abrir a composição do Gmail
+const linkEmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(destinatario)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(mensagem)}`;
+
+// Abre o Gmail em uma nova aba
+window.open(linkEmail, "_blank");
+}
+
     return (
         <div className="pagina-pagamentos">
 
@@ -844,6 +879,14 @@ async function gerarPix(idPagamento) {
             >
                 Copiar código Pix
             </button>
+
+            <button
+    type="button"
+    className="btn-enviar-pix"
+    onClick={enviarPixPorEmail}
+>
+    Enviar Cobrança
+</button>
 {/* Fecha o painel Pix e retorna à lista */}
 <button
     type="button"

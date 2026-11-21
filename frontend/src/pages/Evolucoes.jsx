@@ -174,6 +174,57 @@ async function excluirEvolucao(id) {
         setErro(error.message);
     }
 }
+
+// Prepara o envio da evolução do aluno pelo Gmail
+function enviarEvolucaoPorEmail(evolucao, aluno) {
+
+    // E-mail utilizado somente para testes
+    const destinatario = "testesailton@gmail.com";
+
+    // Identifica o aluno
+    const nomeAluno = aluno
+        ? aluno.nome
+        : `Aluno ID ${evolucao.id_aluno}`;
+
+    // Formata a data para o padrão brasileiro
+    const dataFormatada = evolucao.data_avaliacao
+        .split("-")
+        .reverse()
+        .join("/");
+
+    // Assunto do e-mail
+    const assunto = `AulaConnect - Evolução de ${nomeAluno}`;
+
+    // Conteúdo da mensagem
+    const mensagemEmail = `
+Olá!
+
+Segue o acompanhamento da evolução do aluno.
+
+Aluno: ${nomeAluno}
+Data da avaliação: ${dataFormatada}
+
+Descrição do progresso:
+${evolucao.descricao}
+
+Observações:
+${evolucao.observacoes || "Nenhuma observação adicional."}
+
+Atenciosamente,
+Equipe Personal Kids.
+`;
+
+    // Monta o link de composição do Gmail
+    const linkEmail =
+        `https://mail.google.com/mail/?view=cm&fs=1` +
+        `&to=${encodeURIComponent(destinatario)}` +
+        `&su=${encodeURIComponent(assunto)}` +
+        `&body=${encodeURIComponent(mensagemEmail)}`;
+
+    // Abre o Gmail em uma nova aba
+    window.open(linkEmail, "_blank");
+}
+
     return (
         <section className="pagina-evolucoes">
 
@@ -338,23 +389,37 @@ async function excluirEvolucao(id) {
                             </p>
                         )}
 
-                        {/* Botão de edição e exclusão */}
-                        <div className="acoes-formulario">
+          {/* Botões de ações da evolução */}
+<div className="acoes-formulario acoes-evolucao">
 
-                        <button
-                            type="button"
-                            onClick={() => editarEvolucao(evolucao)}
-                    >
-                            Editar
-                        </button>
+    {/* Edita a evolução cadastrada */}
+    <button
+        type="button"
+        className="btn-editar-evolucao"
+        onClick={() => editarEvolucao(evolucao)}
+    >
+        Editar
+    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => excluirEvolucao(evolucao.id_evolucao)}
-                    >
-                            Excluir
-                        </button>
-            </div>
+    {/* Exclui a evolução cadastrada */}
+    <button
+        type="button"
+        className="btn-excluir-evolucao"
+        onClick={() => excluirEvolucao(evolucao.id_evolucao)}
+    >
+        Excluir
+    </button>
+
+    {/* Prepara o envio da evolução pelo Gmail */}
+    <button
+        type="button"
+        className="btn-enviar-evolucao"
+        onClick={() => enviarEvolucaoPorEmail(evolucao, aluno)}
+    >
+        Enviar evolução
+    </button>
+
+</div>         
 
                     </div>
                 );
