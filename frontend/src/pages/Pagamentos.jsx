@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import apiRequest from "../services/api";
 // Importa os estilos exclusivos da página Pagamentos
 import "../styles/Pagamentos.css";
+// Gera um QR Code a partir do código Pix
+import { QRCodeSVG } from "qrcode.react";
 
 // Página responsável pelo gerenciamento dos pagamentos
 function Pagamentos() {
@@ -53,6 +55,15 @@ function Pagamentos() {
 
     // Armazena os alunos cadastrados no sistema
     const [alunos, setAlunos] = useState([]);
+
+    // Armazena o ID do pagamento que está gerando o Pix
+    const [gerandoPix, setGerandoPix] = useState(null);
+
+    // Armazena os dados da cobrança Pix gerada
+    const [cobrancaPix, setCobrancaPix] = useState(null);
+
+    // Armazena mensagens de erro na geração do Pix
+    const [erroPix, setErroPix] = useState("");
 
         // Executa a consulta quando a página é carregada
     useEffect(() => {
@@ -218,7 +229,7 @@ setValor("");// Limpa o valor informado
 setDataVencimento("");// Limpa a data de vencimento
 setDataPagamento("");// Limpa a data do pagamento
 setStatusPagamento("pendente");// Retorna o status para pendente
-setFormaPagamento("");// Limpa a forma de pagamento
+setFormaPagamento("pix");// Limpa a forma de pagamento
 
 
 } catch (erroCadastro) {
@@ -355,6 +366,44 @@ async function excluirPagamento(idPagamento) {
 
         // Informa que a exclusão não foi concluída
         setMensagemCadastro("Não foi possível excluir o pagamento.");
+    }
+}
+
+// ==================================================
+// GERAR COBRANÇA PIX
+// ==================================================
+
+async function gerarPix(idPagamento) {
+
+    // Indica qual pagamento está sendo processado
+    setGerandoPix(idPagamento);
+
+    // Limpa mensagens e cobranças anteriores
+    setErroPix("");
+    setCobrancaPix(null);
+
+    try {
+
+        // Consulta a rota protegida do FastAPI
+        const dadosPix = await apiRequest(
+            `/pagamentos/${idPagamento}/pix`
+        );
+
+        // Armazena a cobrança recebida
+        setCobrancaPix(dadosPix);
+
+    } catch (erroGeracao) {
+
+        // Exibe o erro no console
+        console.error("Erro ao gerar Pix:", erroGeracao);
+
+        // Informa que não foi possível gerar a cobrança
+        setErroPix("Não foi possível gerar a cobrança Pix.");
+
+    } finally {
+
+        // Libera o botão após finalizar a requisição
+        setGerandoPix(null);
     }
 }
 
@@ -598,6 +647,8 @@ async function excluirPagamento(idPagamento) {
 {/* Exibe a lista de pagamentos cadastrados */}
 {!carregando && !erro && pagamentos.length > 0 && (
 
+    
+
     /* Contêiner responsável por organizar os cards */
     <div className="lista-pagamentos">
 
@@ -662,6 +713,22 @@ async function excluirPagamento(idPagamento) {
 {/* Área dos botões de ações */}
 <div className="acoes-pagamento">
 
+{/* Permite gerar Pix somente para pagamentos pendentes */}
+{pagamento.status === "pendente" && (
+
+    <button
+        type="button"
+        className="btn-gerar-pix"
+        onClick={() => gerarPix(pagamento.id_pagamento)}
+        disabled={gerandoPix !== null}
+    >
+        {gerandoPix === pagamento.id_pagamento
+            ? "Gerando Pix..."
+            : "Gerar Pix"}
+    </button>
+
+)}
+
     {/* Botão para editar o pagamento */}
     <button
     type="button"
@@ -687,6 +754,117 @@ async function excluirPagamento(idPagamento) {
         ))}
 
     </div>
+)}
+
+{/* Exibe mensagens de erro na geração do Pix */}
+{erroPix && (
+    <p role="alert">{erroPix}</p>
+)}
+
+{/* Exibe a cobrança Pix gerada pelo backend */}
+{cobrancaPix && (
+
+    <div className="resultado-pix">
+
+        {/* Cabeçalho da cobrança */}
+        <div className="pix-cabecalho">
+            <h3>Cobrança Pix</h3>
+            <span className="status-pendente">
+                Aguardando pagamento
+            </span>
+        </div>
+
+        {/* Informações da cobrança */}
+        <div className="pix-informacoes">
+
+            <p>Pagamento #{cobrancaPix.id_pagamento}</p>
+
+            <h2>
+                {new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL"
+                }).format(Number(cobrancaPix.valor))}
+            </h2>
+
+            <p>
+                Vencimento: {formatarData(cobrancaPix.data_vencimento)}
+            </p>
+
+        </div>
+
+        {/* QR Code gerado com os dados retornados pelo FastAPI */}
+        <div className="pix-qrcode">
+
+            <QRCodeSVG
+                value={cobrancaPix.codigo_pix}
+                size={190}
+                level="M"
+                marginSize={2}
+            />
+
+            <p>Escaneie o QR Code no aplicativo do banco</p>
+
+        </div>
+
+        {/* Código Pix Copia e Cola */}
+        <div className="pix-codigo">
+
+            <label htmlFor="codigoPix">
+                Código Pix Copia e Cola
+            </label>
+
+            <textarea
+                id="codigoPix"
+                value={cobrancaPix.codigo_pix}
+                readOnly
+                rows={3}
+            />
+
+        </div>
+
+        {/* Ações da cobrança */}
+        <div className="pix-acoes">
+
+            <button
+                type="button"
+                className="btn-copiar-pix"
+                onClick={async () => {
+                    try {
+                        await navigator.clipboard.writeText(
+                            cobrancaPix.codigo_pix
+                        );
+
+                        alert("Código Pix copiado com sucesso!");
+
+                    } catch (erroCopia) {
+                        console.error("Erro ao copiar Pix:", erroCopia);
+                        alert("Não foi possível copiar o código Pix.");
+                    }
+                }}
+            >
+                Copiar código Pix
+            </button>
+{/* Fecha o painel Pix e retorna à lista */}
+<button
+    type="button"
+    className="btn-fechar-pix"
+    onClick={() => {
+        setCobrancaPix(null);
+        setErroPix("");
+    }}
+>
+    Fechar cobrança
+</button>
+        </div>
+
+        {/* Aviso sobre o ambiente de teste */}
+        <p className="pix-aviso">
+            Cobrança gerada em ambiente de teste.
+            O pagamento não é confirmado automaticamente.
+        </p>
+
+    </div>
+
 )}
             </div> 
 

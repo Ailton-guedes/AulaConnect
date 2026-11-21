@@ -1,7 +1,22 @@
+
+
 import os
 # Importa Decimal para trabalhar com valores monetários
+
+# Importa o tipo Decimal para trabalhar com valores monetários
 from decimal import Decimal
 
+# Permite localizar arquivos e pastas
+from pathlib import Path
+
+# Permite carregar variáveis do arquivo .env
+from dotenv import load_dotenv
+
+# Localiza a pasta principal do projeto AulaConnect
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+# Carrega as configurações do arquivo .env
+load_dotenv(BASE_DIR / ".env")
 
 # Formata o valor de uma cobrança para o padrão Pix
 def formatar_valor_pix(valor: Decimal) -> str:
