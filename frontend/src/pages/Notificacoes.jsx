@@ -134,6 +134,43 @@ async function marcarComoLida(id) {
     }
 }
 
+// Prepara uma notificação para envio pelo Gmail
+function enviarNotificacaoPorEmail(notificacao) {
+
+    // E-mail fixo utilizado durante os testes
+    const destinatario = "testesailton@gmail.com";
+
+    // Assunto da mensagem
+    const assunto = `AulaConnect - ${notificacao.titulo}`;
+
+    // Conteúdo do e-mail
+    const mensagemEmail = `
+Olá!
+
+Você recebeu uma notificação do Personal Kids.
+
+Título: ${notificacao.titulo}
+
+Tipo: ${notificacao.tipo || "Geral"}
+
+Mensagem:
+${notificacao.mensagem}
+
+Atenciosamente,
+Equipe Personal Kids.
+`;
+
+    // Prepara o endereço para abrir o Gmail
+    const linkEmail =
+        `https://mail.google.com/mail/?view=cm&fs=1` +
+        `&to=${encodeURIComponent(destinatario)}` +
+        `&su=${encodeURIComponent(assunto)}` +
+        `&body=${encodeURIComponent(mensagemEmail)}`;
+
+    // Abre o Gmail em uma nova aba
+    window.open(linkEmail, "_blank");
+}
+
 // Estrutura visual da página
 return (
     <section className="pagina-notificacoes">
@@ -315,23 +352,30 @@ return (
                         </p>
 
 
-{/* Botão para marcar a notificação como lida */}
-{!notificacao.lida && (
+{/* Botões de ações da notificação */}
+<div className="acoes-formulario acoes-notificacao">
 
-    <div className="acoes-formulario">
+    <button
+        type="button"
+        className="btn-enviar-notificacao"
+        onClick={() => enviarNotificacaoPorEmail(notificacao)}
+    >
+        Enviar notificação
+    </button>
 
+    {!notificacao.lida && (
         <button
             type="button"
+            className="btn-marcar-lida"
             onClick={() =>
                 marcarComoLida(notificacao.id_notificacao)
             }
         >
             Marcar como lida
         </button>
+    )}
 
-    </div>
-
-)}
+</div>
 
                     </div>
                 );

@@ -88,10 +88,11 @@ function GerarAgendamentosAluno({
                 horários semanais e o período do contrato.
             </p>
 
-            <button
-                type="button"
-                onClick={gerarAgendamentos}
-                disabled={gerando || !idContrato}
+                <button
+                    type="button"
+                    className="btn-gerar-agendamentos"
+                    onClick={gerarAgendamentos}
+                    disabled={gerando || !idContrato}
             >
                 {gerando
                     ? "Gerando agendamentos..."

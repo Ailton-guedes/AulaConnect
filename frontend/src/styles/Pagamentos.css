@@ -594,3 +594,20 @@
 .pagina-pagamentos .btn-fechar-pix:hover {
     background-color: #e1dfcb;
 }
+
+/* Botão para preparar o envio da cobrança Pix por e-mail */
+.pagina-pagamentos .btn-enviar-pix {
+    flex: 1;
+    padding: 12px 16px;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pagina-pagamentos .btn-enviar-pix:hover {
+    background-color: #15803d;
+}

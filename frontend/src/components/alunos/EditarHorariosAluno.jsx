@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import apiRequest from "../../services/api";
 
+
 // Dias da semana conforme a numeração do backend
 const diasSemana = [
     "Segunda-feira",
@@ -414,8 +415,7 @@ function EditarHorariosAluno({
     );
 
     return (
-        <div className="campo">
-
+    <div className="campo horarios-edicao-aluno">
             <h3>Horários das aulas</h3>
 
             {/* Mostra as mensagens da operação */}

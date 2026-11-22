@@ -133,3 +133,71 @@
   align-items: center;
   gap: 12px;
 }
+
+
+/* ==========================================
+   LAYOUT PADRÃO DE GERENCIAMENTO
+========================================== */
+
+/* Formulário à esquerda e listagem à direita */
+.layout-gerenciamento {
+    display: grid;
+    grid-template-columns:
+        minmax(360px, 40%)
+        minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+/* Os painéis ocupam suas respectivas colunas */
+.layout-gerenciamento > .painel-pagina {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+/* Campos proporcionais dentro do formulário */
+.layout-gerenciamento .formulario-pagina {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Cartões compactos na listagem */
+.layout-gerenciamento .lista-alunos {
+    grid-template-columns:
+        repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+}
+
+/* Em telas menores, os painéis ficam empilhados */
+@media (max-width: 1000px) {
+    .layout-gerenciamento {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   BOTÃO SAIR DO SISTEMA
+   ======================================== */
+
+.btn-sair {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+
+    background-color: #dc3545;
+    color: white;
+
+    border: none;
+    border-radius: 6px;
+
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-sair:hover {
+    background-color: #b91c1c;
+}

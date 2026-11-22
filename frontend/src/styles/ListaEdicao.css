@@ -1,0 +1,74 @@
+/* ========================================
+   ORGANIZAÇÃO INTERNA DA EDIÇÃO DE HORÁRIOS
+   ======================================== */
+
+/* Mantém os horários organizados dentro da coluna existente */
+.pagina-alunos .horarios-edicao-aluno {
+    width: 100%;
+    min-width: 0;
+    gap: 14px;
+}
+
+/* Evita que o formulário interno ultrapasse o espaço disponível */
+.pagina-alunos .horarios-edicao-aluno .formulario-horario {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Mantém os campos internos alinhados */
+.pagina-alunos .formulario-horario .campo {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Ajusta os títulos da seção */
+.pagina-alunos .horarios-edicao-aluno h3,
+.pagina-alunos .formulario-horario h4 {
+    margin: 0 0 12px;
+}
+
+/* Evita que os botões ultrapassem a largura da coluna */
+.pagina-alunos .horarios-edicao-aluno button {
+    max-width: 100%;
+}
+
+/* ========================================
+   BOTÃO EDITAR HORÁRIO
+   ======================================== */
+
+/* Aparência do botão Editar horário */
+.pagina-alunos .lista-horarios .item-horario button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 11px 18px;
+    margin-top: 10px;
+
+    background-color: #2563eb;
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Efeito ao passar o mouse */
+.pagina-alunos .lista-horarios .item-horario button:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+/* Aparência quando o horário está protegido */
+.pagina-alunos .lista-horarios .item-horario button:disabled {
+    background-color: #94a3b8;
+    color: white;
+    cursor: not-allowed;
+}

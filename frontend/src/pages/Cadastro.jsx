@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+// Importa a função de comunicação com o backend
+import apiRequest from "../services/api";
 import "../styles/Login.css";
+
 
 function Cadastro() {
 
@@ -17,27 +20,74 @@ function Cadastro() {
     // Permite navegar entre páginas
     const navigate = useNavigate();
 
-    // Valida o formulário antes de cadastrar
-    function cadastrarUsuario(evento) {
-        evento.preventDefault();
+   // Valida os dados e cadastra o usuário no FastAPI
+async function cadastrarUsuario(evento) {
+    evento.preventDefault();
 
-        setErro("");
+    // Limpa mensagens anteriores
+    setErro("");
 
-        // Verifica se as senhas são iguais
-        if (senha !== confirmarSenha) {
-            setErro("As senhas não coincidem.");
-            return;
-        }
-
-        // Verifica o tamanho mínimo da senha
-        if (senha.length < 8) {
-            setErro("A senha deve ter pelo menos 8 caracteres.");
-            return;
-        }
-
-        // A integração com o FastAPI será feita
-        // na próxima etapa.
+    // Verifica se as senhas são iguais
+    if (senha !== confirmarSenha) {
+        setErro("As senhas não coincidem.");
+        return;
     }
+
+    // Verifica o tamanho mínimo da senha
+    if (senha.length < 8) {
+        setErro("A senha deve ter pelo menos 8 caracteres.");
+        return;
+    }
+
+    // Impede novos cliques durante o cadastro
+    if (carregando) {
+        return;
+    }
+
+    setCarregando(true);
+
+    try {
+
+        // Organiza os dados esperados pelo FastAPI
+        const dadosUsuario = {
+            nome: nome.trim(),
+            email: email.trim(),
+            senha: senha,
+            tipo_usuario: "PROFESSOR"
+        };
+
+        // Envia os dados para o backend
+        await apiRequest("/usuarios/", {
+            method: "POST",
+            body: JSON.stringify(dadosUsuario)
+        });
+
+        // Confirma que o cadastro foi realizado
+        alert("Conta criada com sucesso! Faça login para continuar.");
+
+        // Direciona o usuário para a tela de login
+        navigate("/login");
+
+    } catch (erroCadastro) {
+
+        // Registra o erro no console
+        console.error(
+            "Erro ao cadastrar usuário:",
+            erroCadastro
+        );
+
+        // Apresenta a mensagem de erro
+        setErro(
+            erroCadastro.message ||
+            "Não foi possível criar a conta."
+        );
+
+    } finally {
+
+        // Libera o botão após a operação
+        setCarregando(false);
+    }
+}
 
     return (
         <div className="pagina-login">

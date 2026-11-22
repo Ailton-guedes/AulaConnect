@@ -1,5 +1,5 @@
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 // Ícones utilizados no menu lateral
 import {
@@ -11,10 +11,25 @@ import {
   ClipboardCheck,
   Wallet,
   TrendingUp,
-  Bell
+  Bell,
+  LogOut
 } from "lucide-react";
 
 function MenuLateral() {
+
+  // Permite navegar entre as páginas
+  const navigate = useNavigate();
+
+  // Encerra a sessão do usuário
+  function sairDoSistema() {
+
+    // Remove o token JWT do navegador
+    sessionStorage.removeItem("access_token");
+
+    // Redireciona para a tela de login
+    navigate("/login", { replace: true });
+  }
+
   return (
     <aside className="menu-lateral">
 
@@ -76,7 +91,15 @@ function MenuLateral() {
         </NavLink>
 
       </nav>
-
+{/* Botão para encerrar a sessão */}
+<button
+  type="button"
+  className="btn-sair"
+  onClick={sairDoSistema}
+>
+  <LogOut size={18} />
+  Sair do sistema
+</button>
     </aside>
   );
 }

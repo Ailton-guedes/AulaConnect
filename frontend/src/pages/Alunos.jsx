@@ -5,6 +5,9 @@ import EditarAluno from "../components/alunos/EditarAluno";
 import EditarHorariosAluno from "../components/alunos/EditarHorariosAluno";
 import GerarAgendamentosAluno from "../components/alunos/GerarAgendamentosAluno";
 
+// Importa os estilos exclusivos da edição dos alunos
+import "../styles/ListaEdicao.css";
+
 function Alunos() {
     // Dados carregados do backend
     const [alunos, setAlunos] = useState([]);

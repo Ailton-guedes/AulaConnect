@@ -4,18 +4,11 @@ function Cabecalho() {
 
             {/* Título e descrição */}
             <div className="cabecalho-info">
-                <h2>Personal Kids</h2>
+                <h2>AulaConnect</h2>
                 <p>Gestão de aulas em um so lugar</p>
             </div>
 
-            {/* Campo de pesquisa */}
-            <div className="pesquisa">
-             <input 
-                type="search"
-                placeholder="Pesquisar..."
-                aria-label="Pesquisar no AulaConnect" 
-             />
-            </div>
+            
 
         </header>
     )

@@ -1,0 +1,3 @@
+ frontend/src/pages/Pagamentos.jsx  | 513 [32m+++++++++++++++++++++++++++++++++++++[m
+ frontend/src/styles/Pagamentos.css | 329 [32m++++++++++++++++++++++++[m
+ 2 files changed, 842 insertions(+)

@@ -1,0 +1,6 @@
+ backend/services/pix.py            |  15 [32m+++[m
+ frontend/package-lock.json         |  10 [32m++[m
+ frontend/package.json              |   1 [32m+[m
+ frontend/src/pages/Pagamentos.jsx  | 180 [32m++++++++++++++++++++++++++++[m[31m-[m
+ frontend/src/styles/Pagamentos.css | 227 [32m+++++++++++++++++++++++++++++++++++++[m
+ 5 files changed, 432 insertions(+), 1 deletion(-)

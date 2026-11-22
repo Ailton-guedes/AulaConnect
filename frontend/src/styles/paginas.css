@@ -807,3 +807,115 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Organização dos botões das notificações */
+.pagina-notificacoes .acoes-notificacao {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+/* Botão Enviar notificação - sempre verde */
+.pagina-notificacoes .acoes-notificacao .btn-enviar-notificacao {
+    background-color: #16a34a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Efeito ao passar o mouse */
+.pagina-notificacoes .acoes-notificacao .btn-enviar-notificacao:hover {
+    background-color: #15803d;
+}
+
+/* Botão Marcar como lida - sempre vermelho */
+.pagina-notificacoes .acoes-notificacao .btn-marcar-lida {
+    background-color: #dc3545;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Efeito ao passar o mouse */
+.pagina-notificacoes .acoes-notificacao .btn-marcar-lida:hover {
+    background-color: #b91c1c;
+}
+
+/* Organização dos botões de evolução */
+.pagina-evolucoes .acoes-evolucao {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+/* Botão Editar */
+.pagina-evolucoes .acoes-evolucao .btn-editar-evolucao {
+    background-color: #2563eb;
+    color: white;
+}
+
+/* Botão Excluir */
+.pagina-evolucoes .acoes-evolucao .btn-excluir-evolucao {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Botão Enviar evolução */
+.pagina-evolucoes .acoes-evolucao .btn-enviar-evolucao {
+    background-color: #16a34a;
+    color: white;
+}
+
+/* Efeito ao passar o mouse */
+.pagina-evolucoes .acoes-evolucao .btn-enviar-evolucao:hover {
+    background-color: #15803d;
+}
+
+/* ========================================
+   BOTÃO GERAR AGENDAMENTOS
+   ======================================== */
+
+/* Botão responsável por gerar as aulas do contrato */
+.btn-gerar-agendamentos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 11px 18px;
+    margin-top: 10px;
+
+    background-color: #2563eb;
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Efeito ao passar o mouse */
+.btn-gerar-agendamentos:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+/* Aparência durante o processamento */
+.btn-gerar-agendamentos:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+
