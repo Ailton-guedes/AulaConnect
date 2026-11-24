@@ -14,47 +14,82 @@ USE aulaconnect;
 -- 1. USUARIOS
 -- =====================================================
 
+-- Armazena os usuários e seus perfis de acesso
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     tipo_usuario VARCHAR(50) NOT NULL,
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+
+    -- Organização à qual o usuário pertence
+    id_organizacao INT NULL,
+
+    -- Data de cadastro do usuário
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Relacionamento entre usuário e organização
+    CONSTRAINT fk_usuario_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 
 -- =====================================================
 -- 2. RESPONSAVEIS
 -- =====================================================
 
+-- Armazena os responsáveis pelos alunos
 CREATE TABLE responsaveis (
     id_responsavel INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização à qual o responsável pertence
+    id_organizacao INT NULL,
+
     nome VARCHAR(100) NOT NULL,
     telefone VARCHAR(25),
     email VARCHAR(100),
     cpf VARCHAR(11),
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Relacionamento com a organização
+    CONSTRAINT fk_responsavel_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 
 -- =====================================================
 -- 3. ALUNOS
 -- =====================================================
 
+-- Armazena os alunos cadastrados
 CREATE TABLE alunos (
     id_aluno INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização à qual o aluno pertence
+    id_organizacao INT NULL,
+
     nome VARCHAR(100) NOT NULL,
     data_nascimento DATE,
     sexo VARCHAR(20),
     observacoes TEXT,
     id_responsavel INT,
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Endereço do aluno
     endereco VARCHAR(200),
     bairro VARCHAR(100),
     cidade VARCHAR(100),
 
-    FOREIGN KEY (id_responsavel)
-        REFERENCES responsaveis(id_responsavel)
-) ENGINE=InnoDB;
+    -- Relacionamento com o responsável
+    CONSTRAINT alunos_ibfk_1
+        FOREIGN KEY (id_responsavel)
+        REFERENCES responsaveis(id_responsavel),
+
+    -- Relacionamento com a organização
+    CONSTRAINT fk_aluno_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 
 -- =====================================================
 -- 4. AULAS
@@ -237,3 +272,21 @@ CREATE TABLE notificacoes (
 -- =====================================================
 -- FIM DO SCRIPT - AULACONNECT
 -- =====================================================
+
+
+
+-- Armazena as organizações cadastradas no AulaConnect
+CREATE TABLE organizacoes (
+
+    -- Identificador único da organização
+    id_organizacao INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Nome do negócio do professor
+    nome VARCHAR(150) NOT NULL,
+
+    -- Situação da organização
+    status VARCHAR(20) NOT NULL DEFAULT 'ATIVA',
+
+    -- Data de criação da organização
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+);

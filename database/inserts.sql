@@ -214,3 +214,13 @@ VALUES
  'Inicio da adaptacao ao meio aquatico.',
  'Manter atividades ludicas.');
 
+
+-- Cadastra a primeira organização do AulaConnect
+INSERT INTO organizacoes (
+    nome,
+    status
+)
+VALUES (
+    'Tia Aline Personal Kids',
+    'ATIVA'
+);
