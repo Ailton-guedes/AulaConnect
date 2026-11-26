@@ -138,90 +138,151 @@ CREATE TABLE planos (
 );
 
 -- 6. CONTRATOS
--- Vincula um aluno ao plano contratado
--- ============================================
-
+-- Tabela responsável pelos contratos dos alunos
 CREATE TABLE contratos (
     id_contrato INT AUTO_INCREMENT PRIMARY KEY,
 
-    -- Aluno que contratou o plano
-    id_aluno INT NOT NULL,
+    -- Organização proprietária do contrato
+    id_organizacao INT NULL,
 
-    -- Plano escolhido
+    -- Identificação do aluno e do plano contratado
+    id_aluno INT NOT NULL,
     id_plano INT NOT NULL,
 
-    -- Período do contrato
+    -- Período de vigência do contrato
     data_inicio DATE NOT NULL,
     data_fim DATE NOT NULL,
 
-    -- Valor acordado no momento da contratação
+    -- Informações financeiras
     valor_mensal DECIMAL(10,2) NOT NULL,
 
     -- Situação do contrato
     status VARCHAR(30) NOT NULL DEFAULT 'ativo',
-
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (id_aluno)
+    -- Professor responsável pelo contrato
+    id_professor INT DEFAULT NULL,
+
+    -- Relacionamento com o aluno
+    CONSTRAINT contratos_ibfk_1
+        FOREIGN KEY (id_aluno)
         REFERENCES alunos(id_aluno),
 
-    FOREIGN KEY (id_plano)
-        REFERENCES planos(id_plano)
-);
+    -- Relacionamento com o plano
+    CONSTRAINT contratos_ibfk_2
+        FOREIGN KEY (id_plano)
+        REFERENCES planos(id_plano),
 
+    -- Relacionamento com o professor
+    CONSTRAINT fk_contratos_professor
+        FOREIGN KEY (id_professor)
+        REFERENCES usuarios(id_usuario),
+
+    -- Relacionamento com a organização
+    CONSTRAINT fk_contrato_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 -- =====================================================
 -- 7. HORARIOS DO CONTRATO
 -- =====================================================
 
+-- Tabela responsável pelos horários dos contratos
 CREATE TABLE horarios_contrato (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização proprietária do horário
+    id_organizacao INT NULL,
+
+    -- Contrato e aula vinculados
     id_contrato INT NOT NULL,
-    id_aula INT,
+    id_aula INT DEFAULT NULL,
+
+    -- Configuração do horário
     dia_semana INT NOT NULL,
     horario_inicio TIME NOT NULL,
+    duracao_minutos INT DEFAULT NULL,
+    deslocamento_minutos INT NOT NULL DEFAULT 30,
 
-    UNIQUE KEY uq_horario_contrato (
+    -- Impede horários duplicados no mesmo contrato
+    UNIQUE KEY id_contrato (
         id_contrato,
         dia_semana,
         horario_inicio
     ),
 
-    FOREIGN KEY (id_contrato)
+    -- Relacionamento com o contrato
+    CONSTRAINT horarios_contrato_ibfk_1
+        FOREIGN KEY (id_contrato)
         REFERENCES contratos(id_contrato),
 
-    FOREIGN KEY (id_aula)
+    -- Relacionamento opcional com a aula
+    CONSTRAINT horarios_contrato_ibfk_2
+        FOREIGN KEY (id_aula)
         REFERENCES aulas(id_aula),
 
-    CONSTRAINT chk_dia_semana
-        CHECK (dia_semana BETWEEN 0 AND 6)
-) ENGINE=InnoDB;
+    -- Relacionamento com a organização
+    CONSTRAINT fk_horario_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao),
 
+    -- Validação dos dias da semana
+    CONSTRAINT CONSTRAINT_1
+        CHECK (dia_semana BETWEEN 0 AND 6)
+);
 -- =====================================================
 -- 8. AGENDAMENTOS E FREQUENCIA
 -- =====================================================
 
+-- Tabela responsável pelos agendamentos das aulas
 CREATE TABLE agendamentos (
     id_agendamento INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização proprietária do agendamento
+    id_organizacao INT NULL,
+
+    -- Aluno e aula vinculados
     id_aluno INT NOT NULL,
-    id_aula INT,
+    id_aula INT DEFAULT NULL,
+
+    -- Informações do agendamento
     data_aula DATE NOT NULL,
     status VARCHAR(30) NOT NULL,
-    presenca VARCHAR(20),
-    id_contrato INT,
-    horario_inicio TIME,
-    tipo_agendamento VARCHAR(30)
-        NOT NULL DEFAULT 'regular',
+    presenca VARCHAR(20) DEFAULT NULL,
 
-    FOREIGN KEY (id_aluno)
+    -- Contrato vinculado
+    id_contrato INT DEFAULT NULL,
+
+    -- Configuração do horário
+    horario_inicio TIME DEFAULT NULL,
+    tipo_agendamento VARCHAR(30) NOT NULL DEFAULT 'regular',
+    id_horario INT DEFAULT NULL,
+
+    -- Relacionamento com o aluno
+    CONSTRAINT agendamentos_ibfk_1
+        FOREIGN KEY (id_aluno)
         REFERENCES alunos(id_aluno),
 
-    FOREIGN KEY (id_aula)
+    -- Relacionamento com a aula
+    CONSTRAINT agendamentos_ibfk_2
+        FOREIGN KEY (id_aula)
         REFERENCES aulas(id_aula),
 
-    FOREIGN KEY (id_contrato)
-        REFERENCES contratos(id_contrato)
-) ENGINE=InnoDB;
+    -- Relacionamento com o contrato
+    CONSTRAINT fk_agendamento_contrato
+        FOREIGN KEY (id_contrato)
+        REFERENCES contratos(id_contrato),
 
+    -- Relacionamento com o horário do contrato
+    CONSTRAINT fk_agendamentos_horario
+        FOREIGN KEY (id_horario)
+        REFERENCES horarios_contrato(id_horario),
+
+    -- Relacionamento com a organização
+    CONSTRAINT fk_agendamento_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 -- =====================================================
 -- 9. PAGAMENTOS
 -- =====================================================
