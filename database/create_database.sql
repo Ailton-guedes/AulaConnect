@@ -95,44 +95,46 @@ CREATE TABLE alunos (
 -- 4. AULAS
 -- =====================================================
 
+-- Tabela responsável pelo cadastro das aulas
 CREATE TABLE aulas (
     id_aula INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização proprietária da aula
+    id_organizacao INT NULL,
+
     descricao VARCHAR(100) NOT NULL,
     dia_semana VARCHAR(30) NOT NULL,
     horario TIME NOT NULL,
-    duracao INT,
-    capacidade INT,
-    observacoes TEXT
-) ENGINE=InnoDB;
+    duracao INT DEFAULT NULL,
+    capacidade INT DEFAULT NULL,
+    observacoes TEXT DEFAULT NULL,
 
+    -- Relacionamento com a organização
+    CONSTRAINT fk_aula_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
+);
 
 -- 5. TABELA: PLANOS
--- Define os planos oferecidos pelo professor
--- ============================================
-
+-- Tabela responsável pelos planos de aulas
 CREATE TABLE planos (
     id_plano INT AUTO_INCREMENT PRIMARY KEY,
 
+    -- Organização proprietária do plano
+    id_organizacao INT NULL,
+
     nome VARCHAR(50) NOT NULL,
-
-    -- Duração do plano em meses
     duracao_meses INT NOT NULL,
-
-    -- Quantidade de aulas por semana
-    -- NULL permitido para registros antigos de teste
-    aulas_por_semana INT NULL,
-
-    -- Valor cobrado mensalmente
+    aulas_por_semana INT DEFAULT NULL,
     valor_mensal DECIMAL(10,2) NOT NULL,
-
-    -- Informações adicionais sobre o plano
-    descricao TEXT,
-
-    -- Indica se o plano está disponível
+    descricao TEXT DEFAULT NULL,
     ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    -- Data em que o plano foi cadastrado
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
+    -- Relacionamento com a organização
+    CONSTRAINT fk_plano_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao)
 );
 
 -- 6. CONTRATOS
