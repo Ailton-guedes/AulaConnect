@@ -287,50 +287,92 @@ CREATE TABLE agendamentos (
 -- 9. PAGAMENTOS
 -- =====================================================
 
+-- Tabela responsável pelo controle financeiro dos alunos
 CREATE TABLE pagamentos (
     id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização à qual o pagamento pertence
+    id_organizacao INT NULL,
+
+    -- Aluno vinculado ao pagamento
     id_aluno INT NOT NULL,
+
     valor DECIMAL(10,2) NOT NULL,
     data_vencimento DATE NOT NULL,
     data_pagamento DATE,
     status VARCHAR(30) NOT NULL,
     forma_pagamento VARCHAR(30),
 
-    FOREIGN KEY (id_aluno)
+    -- Relacionamento com a organização
+    CONSTRAINT fk_pagamento_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao),
+
+    -- Relacionamento com o aluno
+    CONSTRAINT pagamentos_ibfk_1
+        FOREIGN KEY (id_aluno)
         REFERENCES alunos(id_aluno)
-) ENGINE=InnoDB;
+);
 
 -- =====================================================
 -- 10. EVOLUCOES
 -- =====================================================
 
+-- Tabela responsável pelo acompanhamento da evolução dos alunos
 CREATE TABLE evolucoes (
     id_evolucao INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Organização à qual a evolução pertence
+    id_organizacao INT NULL,
+
+    -- Aluno que está sendo avaliado
     id_aluno INT NOT NULL,
+
     data_avaliacao DATE NOT NULL,
     descricao TEXT NOT NULL,
     observacoes TEXT,
 
-    FOREIGN KEY (id_aluno)
+    -- Relacionamento com a organização
+    CONSTRAINT fk_evolucao_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao),
+
+    -- Relacionamento com o aluno
+    CONSTRAINT evolucoes_ibfk_1
+        FOREIGN KEY (id_aluno)
         REFERENCES alunos(id_aluno)
-) ENGINE=InnoDB;
+);
 
 -- =====================================================
 -- 11. NOTIFICACOES
 -- =====================================================
 
+-- Tabela responsável pelas notificações do sistema
 CREATE TABLE notificacoes (
     id_notificacao INT AUTO_INCREMENT PRIMARY KEY,
-    id_usuario INT,
+
+    -- Organização à qual a notificação pertence
+    id_organizacao INT NULL,
+
+    -- Usuário que receberá a notificação
+    id_usuario INT NULL,
+
     titulo VARCHAR(100) NOT NULL,
     mensagem TEXT NOT NULL,
     tipo VARCHAR(30),
     lida BOOLEAN DEFAULT FALSE,
     data_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (id_usuario)
+    -- Relacionamento com a organização
+    CONSTRAINT fk_notificacao_organizacao
+        FOREIGN KEY (id_organizacao)
+        REFERENCES organizacoes(id_organizacao),
+
+    -- Relacionamento com o usuário
+    CONSTRAINT notificacoes_ibfk_1
+        FOREIGN KEY (id_usuario)
         REFERENCES usuarios(id_usuario)
-) ENGINE=InnoDB;
+);
 
 -- =====================================================
 -- FIM DO SCRIPT - AULACONNECT
